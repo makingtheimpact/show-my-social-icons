@@ -1,0 +1,111 @@
+/* General Plugin Admin Page Styles */
+#toplevel_page_show_my_social_icons .wp-menu-image img {
+    padding: 0px;
+}
+.smsi-settings-page h2, .smsi-info-page h2, .smsi-icon-preview-page h2 {
+    font-weight: bold !important;
+}
+
+/* Plugin Settings Page */
+.smsi-settings-page th {
+    padding: 5px 10px 5px 0;
+} 
+.smsi-settings-page td {
+    padding: 5px 10px;
+}
+.smsi-settings-page table:last-child tr:nth-of-type(even) td, .smsi-settings-page table:last-child tr:nth-of-type(even) th {
+    padding-bottom: 15px;
+}
+
+/* Info Page Styles */
+.smsi-info-page h3 {
+    margin-top: 20px;
+}
+.smsi-info-page ul {
+    list-style-type: disc;
+    margin-left: 20px;
+}
+.smsi-info-page textarea {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+.smsi-info-page button {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #0073aa;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+.smsi-info-page button:hover {
+    background-color: #005077;
+}
+
+.smsi-platform-list {
+    border: 0.5px solid #777;
+}
+
+.smsi-platform-list th, .smsi-platform-list td {
+    padding: 5px;
+    border: 0.5px solid #777;
+}
+
+.smsi-platform-list th {
+    text-align: left;
+}
+
+.smsi-platform-list .smsi-icon {
+    width: 30px;
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Icon Preview Page Styles */
+.smsi-icon-preview-table {
+    border: 0.5px solid #777;
+    text-align: center;
+}
+
+.smsi-icon-preview-table thead {
+    background-color: #ddd;
+}
+
+.smsi-icon-preview-table th, .smsi-icon-preview-table td {
+    padding: 5px;
+    border: 0.5px solid #777;
+}
+
+.smsi-icon-preview-table .smsi-thead-left {
+    text-align: left;
+}
+.smsi-icon-preview-table td:first-of-type{
+    text-align: left !important;
+}
+
+@keyframes iconbgcolor {
+    0%   { background: #dddddd; }
+    25%  { background: #ffae00; }
+    50%  { background: #9107b8; }
+    75%  { background: #00b4ae; }
+    100% { background: #dddddd; }
+}
+
+.smsi-icon-preview-table .smsi-icon-light-bg {
+    background: #fff;
+}
+
+.smsi-icon-preview-table .smsi-icon-dark-bg {
+    background: #000;
+}
+
+.smsi-icon-preview-table .smsi-icon {
+    width: 75px;
+    height: auto;
+    vertical-align: middle;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
+    animation: iconbgcolor 9s infinite linear;
+    margin-left: auto;
+    margin-right: auto;
+}

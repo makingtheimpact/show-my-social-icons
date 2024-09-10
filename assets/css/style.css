@@ -1,0 +1,19 @@
+.my-social-icons {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Change as needed based on 'alignment' */
+    gap: 10px;
+}
+
+.my-social-icons img {
+    max-width: 100%; /* Ensures icons scale within their containers */
+    height: auto;
+}
+
+.my-social-icon-single {
+    display: inline-block;
+}
+
+.my-social-icons a:hover, .show-my-social-icons-single a:hover {
+    opacity: 0.8;
+}
