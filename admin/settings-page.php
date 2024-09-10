@@ -132,12 +132,12 @@ function smsi_icon_size_callback() {
 function smsi_icon_style_callback() {
     $value = get_option('icon_style', 'Icon Only in full color');
     echo "<select name='icon_style'>
-            <option value='Full logo horizontal' " . selected($value, 'Full logo horizontal', false) . ">Full logo (horizontal)</option>
-            <option value='Full logo square' " . selected($value, 'Full logo square', false) . ">Full logo (square)</option>
             <option value='Icon only full color' " . selected($value, 'Icon only full color', false) . ">Icon Only in full color</option>
             <option value='Icon only black' " . selected($value, 'Icon only black', false) . ">Icon Only in black</option>
             <option value='Icon only white' " . selected($value, 'Icon only white', false) . ">Icon Only in white</option>
             <option value='Icon only custom color' " . selected($value, 'Icon only custom color', false) . ">Icon Only in custom color</option>
+            <option value='Full logo horizontal' " . selected($value, 'Full logo horizontal', false) . ">Full logo (horizontal)</option>
+            <option value='Full logo square' " . selected($value, 'Full logo square', false) . ">Full logo (square)</option>
           </select>";
 }
 

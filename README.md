@@ -18,30 +18,46 @@ Shortcodes:
 [my_social_icon platform="PLATFORM"] - this displays a single social media icon if the URL is set.
 
 The social media platforms currently supported are: 
-- facebook
-- instagram
-- twitter
-- youtube
-- linkedin
-- pinterest
-- snapchat
-- tiktok
-- reddit
-- whatsapp
-- telegram
-- vimeo
-- parler
-- locals
-- minds
-- myspace
-- odysee
-- patreon
-- paypal
-- spotify
-- twitch
-- venmo
-- vimeo
-- zelle
+- Behance
+- Bitchute
+- CashApp
+- CloutHub
+- Digg
+- Discord
+- Facebook
+- Fiverr
+- Gab
+- GiveSendGo
+- Instagram
+- LinkedIn
+- Linktree
+- Locals
+- Minds
+- MySpace
+- Odysee
+- Parler
+- Patreon
+- PayPal
+- Pinterest
+- Public Square
+- Quora
+- Reddit
+- Rokfin
+- Rumble
+- Snapchat
+- Substack
+- Telegram
+- TikTok
+- Truth Social
+- Twitch
+- X (formerly Twitter)
+- Unite
+- Venmo
+- Vimeo
+- VK
+- WhatsApp
+- YouTube
+- Zelle
 
 
 
@@ -65,7 +81,13 @@ Coming soon...
 
 ## Changelog
 
-### 1.0.1
+### 1.0.70
+- Improved settings page to be easier to use.
+- Added search functionality to the platforms list.
+- Improved code structure, simplifying and cleaning up the code.
+- Bug fixes and improvements to the code.
+
+### 1.0.69
 - Added Parler to the list of supported social media platforms.
 
 ### 1.0.0

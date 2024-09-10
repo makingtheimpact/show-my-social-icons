@@ -16,6 +16,32 @@
 .smsi-settings-page table:last-child tr:nth-of-type(even) td, .smsi-settings-page table:last-child tr:nth-of-type(even) th {
     padding-bottom: 15px;
 }
+.smsi-platform-fields {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    cursor: move;
+}
+
+.smsi-url-field {
+    flex-grow: 1;
+    max-width: 400px;
+}
+
+.smsi-order-field {
+    width: 60px !important;
+    flex-shrink: 0;
+}
+
+.smsi-platform-label {
+    min-width: 120px;
+    font-weight: bold;
+}
 
 /* Info Page Styles */
 .smsi-info-page h3 {
@@ -108,4 +134,14 @@
     animation: iconbgcolor 9s infinite linear;
     margin-left: auto;
     margin-right: auto;
+}
+
+#smsi-platform-search {
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 700px;
+}
+
+#smsi-platform-container {
+    max-width: 700px;
 }

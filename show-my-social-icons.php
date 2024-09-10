@@ -3,7 +3,7 @@
  * Plugin Name: Show My Social Icons
  * Plugin URI: https://makingtheimpact.com
  * Description: Adds your social media icons to the main menu of the site and lets you place them anywhere using a shortcode.
- * Version: 1.0.68
+ * Version: 1.0.70
  * Author: Making The Impact LLC
  * Author URI: https://makingtheimpact.com
  */
@@ -28,4 +28,27 @@ function show_my_social_icons_enqueue_scripts() {
     wp_enqueue_script('my-plugin-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', array('jquery'), '', true);
 }
 add_action('wp_enqueue_scripts', 'show_my_social_icons_enqueue_scripts');
-add_action('admin_enqueue_scripts', 'show_my_social_icons_enqueue_scripts');
+
+// Admin Styles and Scripts 
+function show_my_social_icons_admin_enqueue_scripts($hook) {
+    // Only load on the plugin's admin page
+    if ('toplevel_page_show_my_social_icons' !== $hook) {
+        return;
+    }
+
+    // Enqueue CSS
+    wp_enqueue_style('smsi-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), '1.0.0');
+
+    // Enqueue jQuery UI Sortable
+    wp_enqueue_script('jquery-ui-sortable');
+
+    // Enqueue admin script
+    wp_enqueue_script('smsi-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-script.js', array('jquery', 'jquery-ui-sortable'), '1.0.0', true);
+
+    // Localize script
+    wp_localize_script('smsi-admin-script', 'smsiData', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('smsi_nonce')
+    ));
+}
+add_action('admin_enqueue_scripts', 'show_my_social_icons_admin_enqueue_scripts');

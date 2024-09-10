@@ -3,7 +3,7 @@ Contributors: Making The Impact LLC
 Tags: navigation, menu, icons, social media, social
 Requires at least: 5.0
 Tested up to: 5.8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.70
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,18 +21,46 @@ Shortcodes:
 [my_social_icon platform="PLATFORM"] - this displays a single social media icon if the URL is set.
 
 The social media platforms currently supported are: 
-- facebook
-- instagram
-- twitter
-- youtube
-- linkedin
-- pinterest
-- snapchat
-- tiktok
-- reddit
-- whatsapp
-- telegram
-- vimeo
+- Behance
+- Bitchute
+- CashApp
+- CloutHub
+- Digg
+- Discord
+- Facebook
+- Fiverr
+- Gab
+- GiveSendGo
+- Instagram
+- LinkedIn
+- Linktree
+- Locals
+- Minds
+- MySpace
+- Odysee
+- Parler
+- Patreon
+- PayPal
+- Pinterest
+- Public Square
+- Quora
+- Reddit
+- Rokfin
+- Rumble
+- Snapchat
+- Substack
+- Telegram
+- TikTok
+- Truth Social
+- Twitch
+- X (formerly Twitter)
+- Unite
+- Venmo
+- Vimeo
+- VK
+- WhatsApp
+- YouTube
+- Zelle
  
 
 == Installation ==
@@ -43,11 +71,28 @@ The social media platforms currently supported are:
 == Frequently Asked Questions ==
 
 == Screenshots ==
-Screenshots go here.
+
 
 == Changelog ==
+= 1.0.70 =
+* Improved settings page to be easier to use.
+* Added search functionality to the platforms list.
+* Improved code structure, simplifying and cleaning up the code.
+* Bug fixes and improvements to the code.
+
+= 1.0.69 =
+* Added support for Parler platform.
+
 = 1.0.0 =
 * Initial public release.
 
 == Upgrade Notice ==
-Upgrade notices go here.
+= 1.0.70 =
+* No upgrade notices.
+
+= 1.0.69 =
+* No upgrade notices.
+
+= 1.0.0 =
+* No upgrade notices.
+
