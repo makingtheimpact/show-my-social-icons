@@ -219,3 +219,17 @@ function my_social_icons_add_menu_icons($items, $args) {
     return $items;
 }
 add_filter('wp_nav_menu_items', 'my_social_icons_add_menu_icons', 10, 2);
+
+function smsi_render_social_icons_block($attributes) {
+    $icon_type = isset($attributes['iconType']) ? $attributes['iconType'] : 'PNG';
+    $icon_size = isset($attributes['iconSize']) ? $attributes['iconSize'] : '30px';
+    $icon_style = isset($attributes['iconStyle']) ? $attributes['iconStyle'] : 'Icon only full color';
+    $icon_alignment = isset($attributes['iconAlignment']) ? $attributes['iconAlignment'] : 'Center';
+
+    return do_shortcode("[show_my_social_icons type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\"]");
+}
+
+function smsi_hex_to_filter($hex) {
+    list($r, $g, $b) = sscanf($hex, "#%02x%02x%02x");
+    return "invert(" . round($r / 2.55) . "%) sepia(" . round($g / 2.55) . "%) saturate(" . round($b / 2.55) . "%) hue-rotate(" . round(($r + $g + $b) / 765 * 360) . "deg)";
+}

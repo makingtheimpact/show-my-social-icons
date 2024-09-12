@@ -1,25 +1,41 @@
 <?php
-/* ADMIN SETTINGS PAGE */
+/**
+ * Settings Page
+ *
+ * This file contains the settings page for the plugin.
+ *
+ * @package ShowMySocialIcons
+ */
 
-// Include Admin Styles
+/**
+ * Enqueue admin styles
+ *
+ * @return void
+ */
 function smsi_enqueue_admin_styles() {
     global $smsi_plugin_dir_path;
     wp_enqueue_style('smsi_admin_stylesheet', $smsi_plugin_dir_path . 'assets/css/admin-style.css');
 }
 add_action('admin_enqueue_scripts', 'smsi_enqueue_admin_styles');
 
-// Include Admin JS
+/**
+ * Enqueue color manipulation script
+ *
+ * @return void
+ */
 function smsi_enqueue_color_script() {
     global $smsi_plugin_dir_path;
-    // Ensure jQuery is loaded as it seems you use `$` (jQuery)
     wp_enqueue_script('jquery');
-    // Enqueue your custom script
     wp_enqueue_script('smsi-color-manipulation', $smsi_plugin_dir_path . 'assets/js/script.js', array('jquery'), '1.0.0', true);
 }
 add_action('admin_enqueue_scripts', 'smsi_enqueue_color_script');
 
 
-// Add the menu item and page
+/**
+ * Create the plugin settings page
+ *
+ * @return void
+ */
 function smsi_create_plugin_settings_page() {
     global $smsi_plugin_dir_path;
     $page_title = 'Show My Social Icons';
@@ -34,12 +50,17 @@ function smsi_create_plugin_settings_page() {
 }
 add_action('admin_menu', 'smsi_create_plugin_settings_page');
  
-// Settings Page Content
+/**
+ * Settings Page Content
+ *
+ * @return void
+ */
 function smsi_show_my_social_icons_page_content() { 
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general_settings';
+    $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
     ?>
     <div class="wrap smsi-settings-page">
-        <h2>Show My Social Icons</h2>
+        <img src="<?php echo esc_url($logo_url); ?>" alt="Show My Social Icons" class="smsi-plugin-logo">
         <h2 class="nav-tab-wrapper">
             <a href="?page=show_my_social_icons&tab=general_settings" class="nav-tab <?php echo $active_tab == 'general_settings' ? 'nav-tab-active' : ''; ?>">Platform Settings</a>
             <a href="?page=show_my_social_icons&tab=advanced_settings" class="nav-tab <?php echo $active_tab == 'advanced_settings' ? 'nav-tab-active' : ''; ?>">Icon Style Settings</a>
@@ -60,11 +81,22 @@ function smsi_show_my_social_icons_page_content() {
     </div> <?php
 }
 
+/**
+ * Display admin notices
+ *
+ * @return void
+ */
 add_action('admin_notices', 'smsi_admin_notices');
 function smsi_admin_notices() {
     settings_errors();  // This function will print the settings errors registered with `add_settings_error`
 }
 
+/**
+ * Validate the input data and add errors
+ *
+ * @param array $input The input data to validate.
+ * @return array The validated input data.
+ */
 function smsi_validate_options($input) {
     // Validate the input data and add errors
     if (!valid_input($input)) {
@@ -78,12 +110,21 @@ function smsi_validate_options($input) {
     return $input;  // Return the sanitized/validated input
 }
 
-/* Icon Style Settings */
+/**
+ * Icon Style Settings
+ *
+ * @return void
+ */
 function smsi_icon_style_description_callback() {
     echo '<p>Customize how social media icons appear on your site.</p>';
 }
 add_action('admin_init', 'smsi_setup_icon_style_settings');
 
+/**
+ * Setup the icon style settings
+ *
+ * @return void
+ */
 function smsi_setup_icon_style_settings() {    
     // Register a new section for the icon style settings
     add_settings_section(
@@ -115,7 +156,11 @@ function smsi_setup_icon_style_settings() {
     register_setting('show_my_social_icons_advanced_settings', 'icon_custom_filter', 'esc_attr');
 }
 
-// Icon Style Settings Callbacks
+/**
+ * Icon Style Settings Callbacks
+ *
+ * @return void
+ */
 function smsi_icon_type_callback() {
     $value = get_option('icon_type', 'PNG');
     echo "<select name='icon_type'>
@@ -124,11 +169,21 @@ function smsi_icon_type_callback() {
           </select>";
 }
 
+/**
+ * Icon Size Callback
+ *
+ * @return void
+ */
 function smsi_icon_size_callback() {
     $value = get_option('icon_size', '100px');
     echo "<input type='text' name='icon_size' value='" . esc_attr($value) . "' />";
 }
 
+/**
+ * Icon Style Callback
+ *
+ * @return void
+ */
 function smsi_icon_style_callback() {
     $value = get_option('icon_style', 'Icon Only in full color');
     echo "<select name='icon_style'>
@@ -141,6 +196,11 @@ function smsi_icon_style_callback() {
           </select>";
 }
 
+/**
+ * Icon Alignment Callback
+ *
+ * @return void
+ */
 function smsi_icon_alignment_callback() {
     $value = get_option('icon_alignment', 'Left');
     echo "<select name='icon_alignment'>
@@ -150,6 +210,11 @@ function smsi_icon_alignment_callback() {
           </select>";
 }
 
+/**
+ * Icon Custom Color Callback
+ *
+ * @return void
+ */
 function smsi_icon_custom_color_callback() {
     $color_value = get_option('icon_custom_color', '#000000');
     echo "<input type='color' id='icon_custom_color' name='icon_custom_color' value='" . esc_attr($color_value) . "' />";
@@ -164,20 +229,31 @@ function smsi_icon_custom_color_callback() {
     </script>";
 }
 
-
-
+/**
+ * Display in Menu Callback
+ *
+ * @return void
+ */
 function smsi_display_in_menu_callback() {
     $value = get_option('display_in_menu', '0'); // Assuming '0' means not displayed, '1' means displayed
     $checked = checked(1, $value, false);
     echo "<input type='checkbox' name='display_in_menu' value='1'" . $checked . " />";
 }
 
-// Social Media Platform Link and Order Options
+/**
+ * Platform Settings Description Callback
+ *
+ * @return void
+ */
 function smsi_platform_settings_description_callback() {
     echo '<p>Paste in the URL for the platforms you want to link to then specify a number to set the order you want them to appear. Platforms without valid URLs will not be shown.</p>';
 }
-add_action('admin_init', 'smsi_setup_social_fields');
 
+/**
+ * Setup Social Fields
+ *
+ * @return void
+ */
 function smsi_setup_social_fields() {
     global $social_platforms; // Ensure this is defined somewhere globally accessible
 
@@ -189,10 +265,18 @@ function smsi_setup_social_fields() {
     );
 }
 
-// Platform URL and Order Settings
+/**
+ * Platform URL and Order Settings
+ *
+ * @return void
+ */
 require_once plugin_dir_path(__FILE__) . 'platforms_list.php';
 
-// Shortcode Information Page
+/**
+ * Shortcode Information Page
+ *
+ * @return void
+ */
 function smsi_add_shortcode_info_page() {
     add_submenu_page(
         'show_my_social_icons', // Parent slug
@@ -205,11 +289,18 @@ function smsi_add_shortcode_info_page() {
 }
 add_action('admin_menu', 'smsi_add_shortcode_info_page');
 
+/**
+ * Shortcode Information Page Content
+ *
+ * @return void
+ */
 function smsi_shortcode_info_page_content() {
     global $smsi_plugin_dir_path;
+    $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
 
     $shortcode_info_page_content = "
     <div class='wrap smsi-info-page'>
+    <img src='" . esc_url($logo_url) . "' alt='Show My Social Icons' class='smsi-plugin-logo'>
     <h2>How to Display Your Social Icons</h2>
         <p>Use the shortcodes below to display the icons anywhere on your site. You can customize their appearance using CSS and the shortcode attributes.</p>
         
@@ -269,6 +360,7 @@ function smsi_shortcode_info_page_content() {
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/minds_icon_100px.png' class='smsi-icon'> Minds</td><td>minds</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/myspace_icon_100px.png' class='smsi-icon'> MySpace</td><td>myspace</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/odysee_icon_100px.png' class='smsi-icon'> Odysee</td><td>odysee</td></tr>
+    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/parler_icon_100px.png' class='smsi-icon'> Parler</td><td>parler</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/patreon_icon_100px.png' class='smsi-icon'> Patreon</td><td>patreon</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/paypal_icon_100px.png' class='smsi-icon'> PayPal</td><td>paypal</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/pinterest_icon_100px.png' class='smsi-icon'> Pinterest</td><td>pinterest</td></tr>
@@ -304,7 +396,11 @@ function smsi_shortcode_info_page_content() {
     echo $shortcode_info_page_content;
 }
 
-// Shortcode Information Page
+/**
+ * Icon Preview Page
+ *
+ * @return void
+ */
 function smsi_add_icon_preview_page() {
     add_submenu_page(
         'show_my_social_icons', // Parent slug
@@ -317,10 +413,18 @@ function smsi_add_icon_preview_page() {
 }
 add_action('admin_menu', 'smsi_add_icon_preview_page');
 
+/**
+ * Icon Preview Page Content
+ *
+ * @return void
+ */
 function smsi_icon_preview_page_content() {
     global $smsi_plugin_dir_path;
+    $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
+    
     $icon_preview_page_html = "
     <div class='wrap smsi-icon-preview-page'>
+        <img src='" . esc_url($logo_url) . "' alt='Show My Social Icons' class='smsi-plugin-logo'>
         <h2>Social Media Icon Preview</h2>
         <p>Below is a table of all the social media icons currently supported by this plugin.</p><p>The icons have a <strong>transparent background</strong> and the icons in the PNG format are available in sizes 100px, 150px, 200px, 300px, and 500px. An animated background has been applied to give you an idea of what the icons will look like on different colored backgrounds.</p><p><strong>Tip:</strong> For clear and crisp icons that stretch to any size, we recommend using the SVG format as they can be made into any size without losing quality.</p>
         <table class='smsi-icon-preview-table' cellspacing='0'><thead><th class='smsi-thead-left'>Platform</th><th class='smsi-thead-left'>Platform ID</th><th>Horizontal</th><th>Square</th><th>Icon Only Full Color</th><th>Icon Only Black</th><th>Icon Only White</th></thead>
@@ -341,6 +445,7 @@ function smsi_icon_preview_page_content() {
         <tr><td>Minds</td><td>minds</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/minds_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/minds_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>MySpace</td><td>myspace</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/myspace_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/myspace_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>Odysee</td><td>odysee</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/odysee_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/odysee_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
+        <tr><td>Parler</td><td>parler</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/parler_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/parler_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>Patreon</td><td>patreon</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/patreon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/patreon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>PayPal</td><td>paypal</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/paypal_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/paypal_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>Pinterest</td><td>pinterest</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/pinterest_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/pinterest_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>

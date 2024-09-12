@@ -69,11 +69,26 @@ The social media platforms currently supported are:
 2. Activate the plugin through the 'Plugins' screen in WordPress.
 
 == Frequently Asked Questions ==
+Q: Where can I display the icons?
+A: They can be displayed anywhere. You can display the icons in the main menu, widget areas, header, blocks, shortcodes, and footer. 
+
+Q: I want to use the SVG icons but they aren't displaying. Why not?
+A: The SVG feature is not available for all social media platforms. If a platform is not displaying as an SVG, make sure you have enabled SVGs in the settings and your website supports SVGs.
+
+Q: What if I don't like the icons that are displayed?
+A: You can change the icons to your liking by editing the social media links in the plugin settings. You can preview the icons from the Social Icons menu on the Icon Preview page.
+
 
 == Screenshots ==
 
 
 == Changelog ==
+
+= 1.0.71 =
+* Added widget to display icons in the footer and sidebar sections.
+* Added Gutenberg blocks to display icons in the page builder.
+* Fixed alignment issue with the icons.
+
 = 1.0.70 =
 * Improved settings page to be easier to use.
 * Added search functionality to the platforms list.

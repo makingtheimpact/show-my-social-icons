@@ -1,0 +1,34 @@
+{
+    "apiVersion": 2,
+    "name": "show-my-social-icons/all-icons",
+    "title": "Social Media Icons (All)",
+    "icon": "share-alt",
+    "description": "Display all your social media icons.",
+    "category": "widgets",
+    "keywords": ["social", "media", "icons"],
+    "attributes": {
+        "iconType": {
+            "type": "string",
+            "default": "PNG"
+        },
+        "iconSize": {
+            "type": "string",
+            "default": "30px"
+        },
+        "iconStyle": {
+            "type": "string",
+            "default": "Icon only full color"
+        },
+        "iconAlignment": {
+            "type": "string",
+            "default": "Center"
+        }
+    },
+    "supports": {
+        "html": false
+    },
+    "textdomain": "show-my-social-icons",
+    "editorScript": "file:../build/index.js",
+    "editorStyle": "file:../assets/css/admin-style.css",
+    "style": "file:../assets/css/style.css"
+}

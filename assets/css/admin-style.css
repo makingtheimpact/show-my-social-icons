@@ -43,6 +43,13 @@
     font-weight: bold;
 }
 
+.smsi-plugin-logo {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
 /* Info Page Styles */
 .smsi-info-page h3 {
     margin-top: 20px;
@@ -50,8 +57,7 @@
 .smsi-info-page ul {
     list-style-type: disc;
     margin-left: 20px;
-}
-.smsi-info-page textarea {
+}.smsi-info-page textarea {
     margin-top: 10px;
     margin-bottom: 10px;
     padding: 10px;
@@ -144,4 +150,17 @@
 
 #smsi-platform-container {
     max-width: 700px;
+}
+
+/* Block Editor Styles */
+.wp-block-show-my-social-icons-all-icons {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
+}
+
+.smsi-block-preview {
+    font-style: italic;
+    color: #666;
 }

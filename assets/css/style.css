@@ -1,8 +1,35 @@
 .my-social-icons {
     display: flex;
     align-items: center;
-    justify-content: center; /* Change as needed based on 'alignment' */
     gap: 10px;
+}
+
+.my-social-icons[style*="text-align: left"] {
+    justify-content: flex-start;
+}
+
+.my-social-icons[style*="text-align: center"] {
+    justify-content: center;
+}
+
+.my-social-icons[style*="text-align: right"] {
+    justify-content: flex-end;
+}
+
+.my-social-icon-single {
+    display: inline-block;
+}
+
+.my-social-icon-single[style*="text-align: left"] {
+    text-align: left;
+}
+
+.my-social-icon-single[style*="text-align: center"] {
+    text-align: center;
+}
+
+.my-social-icon-single[style*="text-align: right"] {
+    text-align: right;
 }
 
 .my-social-icons img {
@@ -10,10 +37,31 @@
     height: auto;
 }
 
-.my-social-icon-single {
-    display: inline-block;
-}
-
 .my-social-icons a:hover, .show-my-social-icons-single a:hover {
     opacity: 0.8;
+}
+
+.wp-block-show-my-social-icons-all-icons {
+    margin: 20px 0;
+}
+
+.smsi-single-icon-wrapper {
+    display: block;
+    width: 100%;
+}
+
+.smsi-single-icon-wrapper[style*="text-align: left"] {
+    text-align: left;
+}
+
+.smsi-single-icon-wrapper[style*="text-align: center"] {
+    text-align: center;
+}
+
+.smsi-single-icon-wrapper[style*="text-align: right"] {
+    text-align: right;
+}
+
+.smsi-single-icon-wrapper img {
+    display: inline-block;
 }
