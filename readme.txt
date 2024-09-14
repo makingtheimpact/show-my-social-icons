@@ -52,7 +52,14 @@ Yes, you can customize the size, style, alignment, and colors of the icons throu
 SVG icons are scalable without loss of quality, while PNG icons have a fixed resolution. SVG icons are also smaller in file size for simple icons, but not supported by all browsers (especially older ones). PNG icons are supported by all browsers, but may pixelate when enlarged beyond 500px.
 
 == Screenshots ==
-
+1. Social Icons Settings Page (Platform Settings)
+2. Social Icons Settings Page (Icon Style Settings)
+3. Shortcode Info Page - How to use the shortcodes
+4. Icon Preview Page - View all available icons
+5. Widget Section Block Settings 
+6. Page Block Settings 
+7. Preview of icons displayed on a page and navigation menu.
+8. Preview of icons displayed in a widget area.
 
 == Changelog ==
 
