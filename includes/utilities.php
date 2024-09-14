@@ -84,7 +84,7 @@ function show_my_social_icons_file_path($type, $size, $style) {
                 $icon_file_name_style = "_logo";
                 break; 
             case 'Full logo square': 
-                $icon_path_style = "logos_set_sq_";
+                $icon_path_style = "logos_set_";
                 $icon_path_style_dir = "sq/";
                 $icon_file_name_style = "_logo";
                 break; 
@@ -109,10 +109,10 @@ function show_my_social_icons_file_path($type, $size, $style) {
                 $icon_file_name_style = "_icon";
                 break; 
             default: 
-                $icon_path_style = "logos_set_sq_";
-                $icon_path_style_dir = "sq/";
+                $icon_path_style = "icons_full_color_";
+                $icon_path_style_dir = "ic-c/";
                 $icon_file_name_style = "_icon";
-                break;
+                break; 
         }
         $icon_path_start = $icon_path_dir . $icon_path_style_dir . $icon_file_name_start . $icon_path_style; 
         $icon_file_name_end = $icon_file_name_style . ".svg";
@@ -176,45 +176,66 @@ function show_my_social_icons_file_path($type, $size, $style) {
     If the option is set (it is by default), it will add the icons to the main menu of the site.
 */
 function my_social_icons_add_menu_icons($items, $args) {
-    // Check if icons should be displayed in the menu
-    if (get_option('display_in_menu', '1') != '1') {
-        return $items;
-    }
+    if ($args->theme_location == get_option('smsi_menu_location', 'primary')) {
+        $platforms = my_social_media_platforms();
+        $icons = array();
+        $icon_type = get_option('icon_type', 'PNG');
+        $icon_size = get_option('icon_size', '30px');
+        $icon_style = get_option('icon_style', 'Icon only full color');
+        $custom_color = get_option('icon_custom_color', '');
+        $icon_spacing = get_option('icon_spacing', '10px');
 
-    $setting_type = get_option('icon_type', 'PNG');
-    $setting_size = get_option('icon_size', '30px');
-    $setting_style = get_option('icon_style', 'Icon only full color');
-    $setting_alignment = get_option('icon_alignment', 'Center');
-    $setting_color = get_option('icon_custom_color', '#000000');
+        foreach ($platforms as $platform => $config) {
+            $url = get_option($platform . '_url');
+            $order = get_option($platform . '_order', 0);
+            if ($url) {
+                list($icon_path_start, $icon_file_name_end) = show_my_social_icons_file_path($icon_type, $icon_size, $icon_style);
+                $icon_path = SMSI_PLUGIN_DIR . $icon_path_start . strtolower($platform) . $icon_file_name_end;
+                
+                if ($icon_type === 'SVG') {
+                    $icon_path = plugin_dir_path(SMSI_PLUGIN_FILE) . $icon_path_start . strtolower($platform) . $icon_file_name_end;
+                    $svg_content = file_get_contents($icon_path);
 
-    $platforms = my_social_media_platforms();
-    $icons = array();
+                    // Generate a unique ID for this SVG
+                    $unique_id = 'smsi-' . $platform . '-' . uniqid();
 
-    global $smsi_plugin_dir_path;
-    
-    foreach($platforms as $platform => $icon_class) {
-        $url = get_option($platform . '_url');
-        $order = get_option($platform . '_order');
+                    // Remove the existing style tag
+                    $svg_content = preg_replace('/<style>.*?<\/style>/s', '', $svg_content);
 
-        // Build the image path and file name
-        list($icon_path_start, $icon_file_name_end) = show_my_social_icons_file_path($setting_type, $setting_size, $setting_style);
+                    // Add a new style tag with scoped styles
+                    $svg_content = preg_replace('/<svg /', '<svg style="width: ' . esc_attr($icon_size) . '; height: auto;" ', $svg_content);
+                    $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' { fill: url(#' . $unique_id . '-gradient); }</style>', $svg_content);
 
-        if($url) {
-            // Set the icon image path
-            $icon_path = $icon_path_start . strtolower($platform) . $icon_file_name_end;
-            $style = "width: " . esc_attr($setting_size) . "; text-align: " . esc_attr($setting_alignment) . "; color: " . esc_attr($setting_color) . ";";
-            // Generate the HTML for the menu items
-            $icon_html = '<li class="menu-item"><a href="' . esc_url($url) . '" target="_blank"><img src="' . $smsi_plugin_dir_path . $icon_path . '" style="' . $style . '" /></a></li>';
-            // Add to the icons array at the position specified by the order option
-            $icons[$order] = $icon_html;
+                    // Update class names and gradient IDs to be unique
+                    $svg_content = preg_replace('/class="cls-1"/', 'class="' . $unique_id . '"', $svg_content);
+                    $svg_content = preg_replace('/id="linear-gradient"/', 'id="' . $unique_id . '-gradient"', $svg_content);
+
+                    if ($icon_style !== 'Icon only full color') {
+                        $fill_color = '#000000';
+                        if ($icon_style === 'Icon only white') {
+                            $fill_color = '#FFFFFF';
+                        } elseif ($icon_style === 'Icon only custom color' && !empty($custom_color)) {
+                            $fill_color = $custom_color;
+                        }
+
+                        // Replace the gradient with a solid color
+                        $svg_content = preg_replace('/<linearGradient.*?<\/linearGradient>/s', '', $svg_content);
+                        $svg_content = str_replace('url(#' . $unique_id . '-gradient)', $fill_color, $svg_content);
+                    }
+
+                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon" style="margin-right: ' . esc_attr($icon_spacing) . ';">' . $svg_content . '</a>';
+                } else {
+                    $icon_url = plugins_url($icon_path_start . strtolower($platform) . $icon_file_name_end, SMSI_PLUGIN_FILE);
+                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon" style="margin-right: ' . esc_attr($icon_spacing) . ';"><img src="' . esc_url($icon_url) . '" style="width: ' . esc_attr($icon_size) . '; height: auto;" alt="' . esc_attr($platform) . '"></a>';
+                }
+                
+                $icons[(int)$order] = $icon_html;
+            }
         }
+        
+        ksort($icons);
+        $items .= implode('', $icons);
     }
-    
-    // sort the icons array by key to get them in the correct order
-    ksort($icons);
-    
-    // append the icons to the menu items
-    $items .= implode($icons);
     
     return $items;
 }

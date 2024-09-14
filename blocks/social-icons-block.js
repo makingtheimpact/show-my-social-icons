@@ -1,6 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, TextControl } from '@wordpress/components';
+import { PanelBody, SelectControl, TextControl, ColorPicker } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 // Register the "All Icons" block
@@ -22,12 +22,16 @@ registerBlockType('show-my-social-icons/all-icons', {
             type: 'string',
             default: 'Center',
         },
+        customColor: {
+            type: 'string',
+            default: '#000000',
+        },
     },
     
     // Block editor setup for "All Icons"
     edit: function(props) {
         const { attributes, setAttributes } = props;
-        const { iconType, iconSize, iconStyle, iconAlignment } = attributes;
+        const { iconType, iconSize, iconStyle, iconAlignment, customColor } = attributes;
         const blockProps = useBlockProps();
 
         return (
@@ -53,6 +57,9 @@ registerBlockType('show-my-social-icons/all-icons', {
                             value={iconStyle}
                             options={[
                                 { label: 'Icon only full color', value: 'Icon only full color' },
+                                { label: 'Icon only black', value: 'Icon only black' },
+                                { label: 'Icon only white', value: 'Icon only white' },
+                                { label: 'Icon only custom color', value: 'Icon only custom color' },
                                 { label: 'Full logo horizontal', value: 'Full logo horizontal' },
                                 { label: 'Full logo square', value: 'Full logo square' },
                             ]}
@@ -106,12 +113,16 @@ registerBlockType('show-my-social-icons/single-icon', {
             type: 'string',
             default: 'Center',
         },
+        customColor: {
+            type: 'string',
+            default: '#000000',
+        },
     },
     
     // Block editor setup for "Single Icon"
     edit: function(props) {
         const { attributes, setAttributes } = props;
-        const { platform, iconType, iconSize, iconStyle, iconAlignment } = attributes;
+        const { platform, iconType, iconSize, iconStyle, iconAlignment, customColor } = attributes;
         const blockProps = useBlockProps();
 
         return (
@@ -146,6 +157,9 @@ registerBlockType('show-my-social-icons/single-icon', {
                             value={iconStyle}
                             options={[
                                 { label: 'Icon only full color', value: 'Icon only full color' },
+                                { label: 'Icon only black', value: 'Icon only black' },
+                                { label: 'Icon only white', value: 'Icon only white' },
+                                { label: 'Icon only custom color', value: 'Icon only custom color' },
                                 { label: 'Full logo horizontal', value: 'Full logo horizontal' },
                                 { label: 'Full logo square', value: 'Full logo square' },
                             ]}

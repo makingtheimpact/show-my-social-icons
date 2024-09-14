@@ -1,88 +1,67 @@
-=== Plugin Name ===
+=== Show My Social Icons ===
 Contributors: Making The Impact LLC
-Tags: navigation, menu, icons, social media, social
+Tags: social media, icons, menu, widget, gutenberg
 Requires at least: 5.0
-Tested up to: 5.8.1
-Stable tag: 1.0.70
+Tested up to: 6.6.2
+Stable tag: 1.0.72
+Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-This plugin makes it easy to add social media icons to your site and update the links in one place. You can have your social media icons display in the main menu or use a shortcode to display them on your website. You can display individual icons or all of them - the plugin will only display the icons where you have a URL specified. 
-
+Display customizable social media icons anywhere on your WordPress site using shortcodes, widgets, Gutenberg blocks, or in the main menu.
 
 == Description ==
-Quickly and easily display links to your social media pages on your website and in the main menu with this simple, lightweight plugin. It uses FontAwesome 5 to display the brand icons for the social media links you save in the plugin's settings. 
 
-By default, the icons will display in the main menu on your website, but you can disable it by simply unchecking the option. 
+Show My Social Icons is a versatile and user-friendly plugin that allows you to easily add and manage social media icons on your WordPress website. With support for over 30 popular and alternative social media platforms, you can showcase your online presence effortlessly.
 
-Shortcodes:
-[show_my_social_icons] - this displays all the social media icons that have URL values set.
+Key Features:
 
-[my_social_icon platform="PLATFORM"] - this displays a single social media icon if the URL is set.
+* Display icons in the main menu, widget areas, or anywhere using shortcodes and Gutenberg blocks
+* Choose between SVG and PNG icon formats
+* Customize icon size, style, and alignment
+* Set custom colors for icons
+* Drag-and-drop ordering of icons
+* Search functionality to quickly find platforms
+* Individual icon display option
 
-The social media platforms currently supported are: 
-- Behance
-- Bitchute
-- CashApp
-- CloutHub
-- Digg
-- Discord
-- Facebook
-- Fiverr
-- Gab
-- GiveSendGo
-- Instagram
-- LinkedIn
-- Linktree
-- Locals
-- Minds
-- MySpace
-- Odysee
-- Parler
-- Patreon
-- PayPal
-- Pinterest
-- Public Square
-- Quora
-- Reddit
-- Rokfin
-- Rumble
-- Snapchat
-- Substack
-- Telegram
-- TikTok
-- Truth Social
-- Twitch
-- X (formerly Twitter)
-- Unite
-- Venmo
-- Vimeo
-- VK
-- WhatsApp
-- YouTube
-- Zelle
- 
+Supported Platforms:
+Behance, Bitchute, CashApp, CloutHub, Digg, Discord, Facebook, Fiverr, Gab, GiveSendGo, Instagram, LinkedIn, Linktree, Locals, Minds, MySpace, Odysee, Parler, Patreon, PayPal, Pinterest, Public Square, Quora, Reddit, Rokfin, Rumble, Snapchat, Substack, Telegram, TikTok, Truth Social, Twitch, X (Twitter), Unite, Venmo, Vimeo, VK, WhatsApp, YouTube, Zelle
 
 == Installation ==
-1. Upload the plugin folder to the `/wp-content/plugins` directory, or install the plugin through the WordPress plugins screen directly.
 
+1. Upload the plugin folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
+3. Use the Settings -> Show My Social Icons screen to configure the plugin and add your social media URLs.
 
 == Frequently Asked Questions ==
-Q: Where can I display the icons?
-A: They can be displayed anywhere. You can display the icons in the main menu, widget areas, header, blocks, shortcodes, and footer. 
 
-Q: I want to use the SVG icons but they aren't displaying. Why not?
-A: The SVG feature is not available for all social media platforms. If a platform is not displaying as an SVG, make sure you have enabled SVGs in the settings and your website supports SVGs.
+= Where can I display the icons? =
 
-Q: What if I don't like the icons that are displayed?
-A: You can change the icons to your liking by editing the social media links in the plugin settings. You can preview the icons from the Social Icons menu on the Icon Preview page.
+You can display the icons in the main menu, widget areas, header, footer, or anywhere in your content using Gutenberg blocks, widgets, or shortcodes.
 
+= How do I use the shortcodes? =
+
+Use `[show_my_social_icons]` to display all icons, or `[my_social_icon platform="facebook"]` to display a single icon.
+
+= Can I customize the appearance of the icons? =
+
+Yes, you can customize the size, style, alignment, and colors of the icons through the plugin settings and shortcode/block attributes.
+
+= What's the difference between SVG and PNG icons? =
+
+SVG icons are scalable without loss of quality, while PNG icons have a fixed resolution. SVG icons are also smaller in file size for simple icons, but not supported by all browsers (especially older ones). PNG icons are supported by all browsers, but may pixelate when enlarged beyond 500px.
 
 == Screenshots ==
 
 
 == Changelog ==
+
+= 1.0.72 =
+* Added custom color to the icons.
+* Fixed bug preventing SVG icons from displaying in the correct custom color.
+* Added margin settings to icon containers.
+* Fixed settings for blocks and widgets to support available icon options.
+* Updated documentation and settings pages to reflect new features and changes.
 
 = 1.0.71 =
 * Added widget to display icons in the footer and sidebar sections.
@@ -102,8 +81,11 @@ A: You can change the icons to your liking by editing the social media links in 
 * Initial public release.
 
 == Upgrade Notice ==
-= 1.0.70 =
-* No upgrade notices.
+    
+= 1.0.72 =
+* Major update to the plugin structure and code.
+* Bug fixes affecting icon display and settings.
+* Improved customization settings and options. 
 
 = 1.0.69 =
 * No upgrade notices.

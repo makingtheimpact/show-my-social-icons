@@ -1,6 +1,6 @@
 {
   "name": "show-my-social-icons",
-  "version": "1.0.0",
+  "version": "1.0.72",
   "description": "This plugin makes it easy to display social media icons anywhere on your website.",
   "main": "index.js",
   "scripts": {

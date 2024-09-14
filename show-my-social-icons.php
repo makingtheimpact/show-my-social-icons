@@ -2,12 +2,12 @@
 /**
  * Plugin Name: Show My Social Icons
  * Plugin URI: https://makingtheimpact.com
- * Description: Adds your social media icons to the main menu of the site and lets you place them anywhere using a shortcode.
- * Version: 1.0.71
+ * Description: Display customizable social media icons anywhere on your WordPress site using shortcodes, widgets, Gutenberg blocks, or in the main menu.
+ * Version: 1.0.72
  * Requires at least: 5.0
  * Requires PHP: 7.0
- * Tested up to: 6.0
- * Stable tag: 1.0.71
+ * Tested up to: 6.6.2
+ * Stable tag: 1.0.72
  * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: show-my-social-icons
@@ -23,8 +23,6 @@ if (!defined('WPINC')) {
     die;
 }
 
-$smsi_plugin_dir_path = plugin_dir_url(__FILE__);
-
 /**
  * Require necessary files
  */
@@ -35,7 +33,10 @@ require_once plugin_dir_path(__FILE__) . 'public/shortcodes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-all-icons-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-single-icon-widget.php';
 
+define('SMSI_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('SMSI_PLUGIN_FILE', __FILE__);
 
+$smsi_plugin_dir_path = plugin_dir_url(__FILE__);
 
 /**
  * Enqueue scripts and styles for the public-facing side of the site.
@@ -65,7 +66,8 @@ function smsi_admin_enqueue_scripts($hook) {
 
     wp_localize_script('smsi-admin-script', 'smsiData', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('smsi_nonce')
+        'nonce' => wp_create_nonce('smsi_nonce'),
+        'ajax_url' => admin_url('admin-ajax.php')
     ));
 
     wp_enqueue_script(
@@ -78,6 +80,8 @@ function smsi_admin_enqueue_scripts($hook) {
     wp_localize_script('smsi-block-editor', 'smsiPlatforms', array(
         'platforms' => my_social_media_platforms()
     ));
+
+    wp_enqueue_script('smsi-admin-floating-save', plugin_dir_url(__FILE__) . 'assets/js/admin-floating-save.js', array('jquery'), '1.0.0', true);
 }
 add_action('admin_enqueue_scripts', 'smsi_admin_enqueue_scripts');
 
@@ -105,13 +109,38 @@ function smsi_register_block() {
     register_block_type('show-my-social-icons/all-icons', array(
         'editor_script' => 'smsi-block-editor',
         'editor_style' => 'smsi-block-editor',
-        'render_callback' => 'smsi_render_all_icons_block'
+        'render_callback' => 'smsi_render_all_icons_block',
+        'attributes' => array(
+            'iconType' => array('type' => 'string', 'default' => 'PNG'),
+            'iconSize' => array('type' => 'string', 'default' => '30px'),
+            'iconStyle' => array('type' => 'string', 'default' => 'Icon only full color'),
+            'iconAlignment' => array('type' => 'string', 'default' => 'Center'),
+            'customColor' => array('type' => 'string', 'default' => '#000000'),
+            'marginTop' => array('type' => 'string', 'default' => '0px'),
+            'marginRight' => array('type' => 'string', 'default' => '0px'),
+            'marginBottom' => array('type' => 'string', 'default' => '0px'),
+            'marginLeft' => array('type' => 'string', 'default' => '0px'),
+            'linkMargins' => array('type' => 'boolean', 'default' => false),
+        ),
     ));
 
     register_block_type('show-my-social-icons/single-icon', array(
         'editor_script' => 'smsi-block-editor',
         'editor_style' => 'smsi-block-editor',
-        'render_callback' => 'smsi_render_single_icon_block'
+        'render_callback' => 'smsi_render_single_icon_block',
+        'attributes' => array(
+            'platform' => array('type' => 'string', 'default' => ''),
+            'iconType' => array('type' => 'string', 'default' => 'PNG'),
+            'iconSize' => array('type' => 'string', 'default' => '30px'),
+            'iconStyle' => array('type' => 'string', 'default' => 'Icon only full color'),
+            'iconAlignment' => array('type' => 'string', 'default' => 'Center'),
+            'customColor' => array('type' => 'string', 'default' => '#000000'),
+            'marginTop' => array('type' => 'string', 'default' => '0px'),
+            'marginRight' => array('type' => 'string', 'default' => '0px'),
+            'marginBottom' => array('type' => 'string', 'default' => '0px'),
+            'marginLeft' => array('type' => 'string', 'default' => '0px'),
+            'linkMargins' => array('type' => 'boolean', 'default' => false),
+        ),
     ));
 
     if (function_exists('wp_set_script_translations')) {
@@ -126,7 +155,8 @@ add_action('init', 'smsi_register_block');
  * @return void
  */
 function smsi_register_widgets() {
-    register_widget('SMSI_All_Icons_Widget');
+    global $wp_widget_factory;
+    $wp_widget_factory->register('SMSI_All_Icons_Widget');
     register_widget('SMSI_Single_Icon_Widget');
 }
 add_action('widgets_init', 'smsi_register_widgets');
@@ -136,8 +166,14 @@ function smsi_render_all_icons_block($attributes) {
     $icon_size = isset($attributes['iconSize']) ? $attributes['iconSize'] : '30px';
     $icon_style = isset($attributes['iconStyle']) ? $attributes['iconStyle'] : 'Icon only full color';
     $icon_alignment = isset($attributes['iconAlignment']) ? $attributes['iconAlignment'] : 'Center';
+    $custom_color = isset($attributes['customColor']) ? $attributes['customColor'] : '#000000';
 
-    return do_shortcode("[show_my_social_icons type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\"]");
+    $margin_top = smsi_sanitize_margin(isset($attributes['marginTop']) ? $attributes['marginTop'] : '0');
+    $margin_right = smsi_sanitize_margin(isset($attributes['marginRight']) ? $attributes['marginRight'] : '0');
+    $margin_bottom = smsi_sanitize_margin(isset($attributes['marginBottom']) ? $attributes['marginBottom'] : '0');
+    $margin_left = smsi_sanitize_margin(isset($attributes['marginLeft']) ? $attributes['marginLeft'] : '0');
+
+    return do_shortcode("[show_my_social_icons type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\" custom_color=\"$custom_color\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\"]");
 }
 
 function smsi_render_single_icon_block($attributes) {
@@ -146,8 +182,14 @@ function smsi_render_single_icon_block($attributes) {
     $icon_size = isset($attributes['iconSize']) ? $attributes['iconSize'] : '30px';
     $icon_style = isset($attributes['iconStyle']) ? $attributes['iconStyle'] : 'Icon only full color';
     $icon_alignment = isset($attributes['iconAlignment']) ? $attributes['iconAlignment'] : 'Center';
+    $custom_color = isset($attributes['customColor']) ? $attributes['customColor'] : '#000000';
 
-    return do_shortcode("[my_social_icon platform=\"$platform\" type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\"]");
+    $margin_top = smsi_sanitize_margin(isset($attributes['marginTop']) ? $attributes['marginTop'] : '0');
+    $margin_right = smsi_sanitize_margin(isset($attributes['marginRight']) ? $attributes['marginRight'] : '0');
+    $margin_bottom = smsi_sanitize_margin(isset($attributes['marginBottom']) ? $attributes['marginBottom'] : '0');
+    $margin_left = smsi_sanitize_margin(isset($attributes['marginLeft']) ? $attributes['marginLeft'] : '0');
+
+    return do_shortcode("[my_social_icon platform=\"$platform\" type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\" custom_color=\"$custom_color\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\"]");
 }
 
 function smsi_enqueue_block_editor_assets() {
@@ -157,7 +199,7 @@ function smsi_enqueue_block_editor_assets() {
         'smsi-block-editor',
         plugins_url('build/index.js', __FILE__),
         $asset_file['dependencies'],
-        $asset_file['version'],
+        filemtime(plugin_dir_path(__FILE__) . 'build/index.js'),
         true
     );
     wp_script_add_data('smsi-block-editor', 'type', 'module');
@@ -172,7 +214,7 @@ function smsi_register_rest_route() {
     ));
 }
 add_action('rest_api_init', 'smsi_register_rest_route');
-    $icon_type = isset($attributes['iconType']) ? $attributes['iconType'] : 'PNG';
+
 function smsi_get_platforms() {
     return my_social_media_platforms();
 }

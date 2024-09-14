@@ -1,6 +1,6 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, TextControl } from '@wordpress/components';
+import { PanelBody, SelectControl, TextControl, ColorPicker, ToggleControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
@@ -25,12 +25,40 @@ registerBlockType('show-my-social-icons/all-icons', {
             type: 'string',
             default: 'Center',
         },
+        customColor: {
+            type: 'string',
+            default: '#000000',
+        },
+        spacing: {
+            type: 'string',
+            default: '10px',
+        },
+        marginTop: {
+            type: 'string',
+            default: '0px',
+        },
+        marginRight: {
+            type: 'string',
+            default: '0px',
+        },
+        marginBottom: {
+            type: 'string',
+            default: '0px',
+        },
+        marginLeft: {
+            type: 'string',
+            default: '0px',
+        },
+        linkMargins: {
+            type: 'boolean',
+            default: false,
+        },
     },
     
     // Block editor setup for "All Icons"
     edit: function(props) {
         const { attributes, setAttributes } = props;
-        const { iconType, iconSize, iconStyle, iconAlignment } = attributes;
+        const { iconType, iconSize, iconStyle, iconAlignment, customColor, spacing, marginTop, marginRight, marginBottom, marginLeft, linkMargins } = attributes;
         const blockProps = useBlockProps();
 
         return (
@@ -41,25 +69,42 @@ registerBlockType('show-my-social-icons/all-icons', {
                             label={__('Icon Type', 'show-my-social-icons')}
                             value={iconType}
                             options={[
-                                { label: 'PNG', value: 'PNG' },
                                 { label: 'SVG', value: 'SVG' },
+                                { label: 'PNG', value: 'PNG' },
                             ]}
                             onChange={(newIconType) => setAttributes({ iconType: newIconType })}
-                        />
-                        <TextControl
-                            label={__('Icon Size', 'show-my-social-icons')}
-                            value={iconSize}
-                            onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
                             label={__('Icon Style', 'show-my-social-icons')}
                             value={iconStyle}
-                            options={[
-                                { label: 'Icon only full color', value: 'Icon only full color' },
-                                { label: 'Full logo horizontal', value: 'Full logo horizontal' },
-                                { label: 'Full logo square', value: 'Full logo square' },
-                            ]}
+                            options={
+                                iconType === 'SVG'
+                                    ? [
+                                        { label: 'Icon only black', value: 'Icon only black' },
+                                        { label: 'Icon only white', value: 'Icon only white' },
+                                        { label: 'Icon only custom color', value: 'Icon only custom color' },
+                                      ]
+                                    : [
+                                        { label: 'Icon only full color', value: 'Icon only full color' },
+                                        { label: 'Icon only black', value: 'Icon only black' },
+                                        { label: 'Icon only white', value: 'Icon only white' },
+                                        { label: 'Full logo horizontal', value: 'Full logo horizontal' },
+                                        { label: 'Full logo square', value: 'Full logo square' },
+                                      ]
+                            }
                             onChange={(newIconStyle) => setAttributes({ iconStyle: newIconStyle })}
+                        />
+                        {iconType === 'SVG' && iconStyle === 'Icon only custom color' && (
+                            <ColorPicker
+                                label={__('Custom Color', 'show-my-social-icons')}
+                                color={customColor}
+                                onChangeComplete={(newColor) => setAttributes({ customColor: newColor.hex })}
+                            />
+                        )}
+                        <TextControl
+                            label={__('Icon Size', 'show-my-social-icons')}
+                            value={iconSize}
+                            onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
                             label={__('Icon Alignment', 'show-my-social-icons')}
@@ -71,6 +116,57 @@ registerBlockType('show-my-social-icons/all-icons', {
                             ]}
                             onChange={(newIconAlignment) => setAttributes({ iconAlignment: newIconAlignment })}
                         />
+                        <TextControl
+                            label={__('Icon Spacing', 'show-my-social-icons')}
+                            value={spacing}
+                            onChange={(newSpacing) => setAttributes({ spacing: newSpacing })}
+                        />
+                        <PanelBody title={__('Container Margins', 'show-my-social-icons')} initialOpen={false}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                <TextControl
+                                    label={__('Top', 'show-my-social-icons')}
+                                    value={marginTop}
+                                    onChange={(newMarginTop) => setAttributes({ marginTop: newMarginTop })}
+                                    style={{ width: '48%' }}
+                                />
+                                <TextControl
+                                    label={__('Bottom', 'show-my-social-icons')}
+                                    value={marginBottom}
+                                    onChange={(newMarginBottom) => setAttributes({ marginBottom: newMarginBottom })}
+                                    style={{ width: '48%' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                <TextControl
+                                    label={__('Left', 'show-my-social-icons')}
+                                    value={marginLeft}
+                                    onChange={(newMarginLeft) => setAttributes({ marginLeft: newMarginLeft })}
+                                    style={{ width: '48%' }}
+                                />
+                                <TextControl
+                                    label={__('Right', 'show-my-social-icons')}
+                                    value={marginRight}
+                                    onChange={(newMarginRight) => setAttributes({ marginRight: newMarginRight })}
+                                    style={{ width: '48%' }}
+                                />
+                            </div>
+                            <ToggleControl
+                                label={__('Link Margins', 'show-my-social-icons')}
+                                checked={linkMargins}
+                                onChange={(newLinkMargins) => {
+                                    setAttributes({ linkMargins: newLinkMargins });
+                                    if (newLinkMargins) {
+                                        const newMargin = marginTop || marginRight || marginBottom || marginLeft || '0px';
+                                        setAttributes({
+                                            marginTop: newMargin,
+                                            marginRight: newMargin,
+                                            marginBottom: newMargin,
+                                            marginLeft: newMargin
+                                        });
+                                    }
+                                }}
+                            />
+                        </PanelBody>
                     </PanelBody>
                 </InspectorControls>
                 <div className="smsi-block-preview">
@@ -92,7 +188,7 @@ registerBlockType('show-my-social-icons/single-icon', {
     attributes: {
         platform: {
             type: 'string',
-            default: 'Facebook', // Default to Facebook
+            default: 'Facebook',
         },
         iconType: {
             type: 'string',
@@ -110,12 +206,36 @@ registerBlockType('show-my-social-icons/single-icon', {
             type: 'string',
             default: 'Center',
         },
+        customColor: {
+            type: 'string',
+            default: '#000000',
+        },
+        marginTop: {
+            type: 'string',
+            default: '0px',
+        },
+        marginRight: {
+            type: 'string',
+            default: '0px',
+        },
+        marginBottom: {
+            type: 'string',
+            default: '0px',
+        },
+        marginLeft: {
+            type: 'string',
+            default: '0px',
+        },
+        linkMargins: {
+            type: 'boolean',
+            default: false,
+        },
     },
     
     // Block editor setup for "Single Icon"
     edit: function(props) {
         const { attributes, setAttributes } = props;
-        const { platform, iconType, iconSize, iconStyle, iconAlignment } = attributes;
+        const { platform, iconType, iconSize, iconStyle, iconAlignment, customColor, marginTop, marginRight, marginBottom, marginLeft, linkMargins } = attributes;
         const blockProps = useBlockProps();
         const [platforms, setPlatforms] = useState([]);
 
@@ -157,25 +277,42 @@ registerBlockType('show-my-social-icons/single-icon', {
                             label={__('Icon Type', 'show-my-social-icons')}
                             value={iconType}
                             options={[
-                                { label: 'PNG', value: 'PNG' },
                                 { label: 'SVG', value: 'SVG' },
+                                { label: 'PNG', value: 'PNG' },
                             ]}
                             onChange={(newIconType) => setAttributes({ iconType: newIconType })}
-                        />
-                        <TextControl
-                            label={__('Icon Size', 'show-my-social-icons')}
-                            value={iconSize}
-                            onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
                             label={__('Icon Style', 'show-my-social-icons')}
                             value={iconStyle}
-                            options={[
-                                { label: 'Icon only full color', value: 'Icon only full color' },
-                                { label: 'Full logo horizontal', value: 'Full logo horizontal' },
-                                { label: 'Full logo square', value: 'Full logo square' },
-                            ]}
+                            options={
+                                iconType === 'SVG'
+                                    ? [
+                                        { label: 'Icon only black', value: 'Icon only black' },
+                                        { label: 'Icon only white', value: 'Icon only white' },
+                                        { label: 'Icon only custom color', value: 'Icon only custom color' },
+                                      ]
+                                    : [
+                                        { label: 'Icon only full color', value: 'Icon only full color' },
+                                        { label: 'Icon only black', value: 'Icon only black' },
+                                        { label: 'Icon only white', value: 'Icon only white' },
+                                        { label: 'Full logo horizontal', value: 'Full logo horizontal' },
+                                        { label: 'Full logo square', value: 'Full logo square' },
+                                      ]
+                            }
                             onChange={(newIconStyle) => setAttributes({ iconStyle: newIconStyle })}
+                        />
+                        {iconType === 'SVG' && iconStyle === 'Icon only custom color' && (
+                            <ColorPicker
+                                label={__('Custom Color', 'show-my-social-icons')}
+                                color={customColor}
+                                onChangeComplete={(newColor) => setAttributes({ customColor: newColor.hex })}
+                            />
+                        )}
+                        <TextControl
+                            label={__('Icon Size', 'show-my-social-icons')}
+                            value={iconSize}
+                            onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
                             label={__('Icon Alignment', 'show-my-social-icons')}
@@ -187,10 +324,56 @@ registerBlockType('show-my-social-icons/single-icon', {
                             ]}
                             onChange={(newIconAlignment) => setAttributes({ iconAlignment: newIconAlignment })}
                         />
+                        <PanelBody title={__('Container Margins', 'show-my-social-icons')} initialOpen={false}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                <TextControl
+                                    label={__('Top', 'show-my-social-icons')}
+                                    value={marginTop}
+                                    onChange={(newMarginTop) => setAttributes({ marginTop: newMarginTop })}
+                                    style={{ width: '48%' }}
+                                />
+                                <TextControl
+                                    label={__('Bottom', 'show-my-social-icons')}
+                                    value={marginBottom}
+                                    onChange={(newMarginBottom) => setAttributes({ marginBottom: newMarginBottom })}
+                                    style={{ width: '48%' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                <TextControl
+                                    label={__('Left', 'show-my-social-icons')}
+                                    value={marginLeft}
+                                    onChange={(newMarginLeft) => setAttributes({ marginLeft: newMarginLeft })}
+                                    style={{ width: '48%' }}
+                                />
+                                <TextControl
+                                    label={__('Right', 'show-my-social-icons')}
+                                    value={marginRight}
+                                    onChange={(newMarginRight) => setAttributes({ marginRight: newMarginRight })}
+                                    style={{ width: '48%' }}
+                                />
+                            </div>
+                            <ToggleControl
+                                label={__('Link Margins', 'show-my-social-icons')}
+                                checked={linkMargins}
+                                onChange={(newLinkMargins) => {
+                                    setAttributes({ linkMargins: newLinkMargins });
+                                    if (newLinkMargins) {
+                                        const newMargin = marginTop || marginRight || marginBottom || marginLeft || '0px';
+                                        setAttributes({
+                                            marginTop: newMargin,
+                                            marginRight: newMargin,
+                                            marginBottom: newMargin,
+                                            marginLeft: newMargin
+                                        });
+                                    }
+                                }}
+                            />
+                        </PanelBody>
                     </PanelBody>
                 </InspectorControls>
                 <div className="smsi-block-preview">
-                    <p>{__('Social Media Icon for ' + (platforms.find(p => p.id === platform)?.name || platform) + ' will appear here', 'show-my-social-icons')}</p>
+                    <p>{__('Social Media Icon (Single) will appear here', 'show-my-social-icons')}</p>
                 </div>
             </div>
         );

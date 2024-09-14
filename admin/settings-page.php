@@ -43,7 +43,7 @@ function smsi_create_plugin_settings_page() {
     $capability = 'manage_options'; // Only users with the 'manage_options' capability (i.e., admins) can access this menu
     $slug = 'show_my_social_icons';
     $callback = 'smsi_show_my_social_icons_page_content';
-    $icon_file_path = $smsi_plugin_dir_path . 'assets/svg/show-my-social-icons-plugin-icon.svg';
+    $icon_file_path = plugins_url('assets/svg/show-my-social-icons-plugin-icon.svg', dirname(__FILE__));
     $position = 100;
 
     add_menu_page($page_title, $menu_title, $capability, $slug, $callback, $icon_file_path, $position);
@@ -66,19 +66,21 @@ function smsi_show_my_social_icons_page_content() {
             <a href="?page=show_my_social_icons&tab=advanced_settings" class="nav-tab <?php echo $active_tab == 'advanced_settings' ? 'nav-tab-active' : ''; ?>">Icon Style Settings</a>
         </h2>
         
-        <form method="post" action="options.php">
+        <form method="post" action="options.php" id="smsi-settings-form">
             <?php
-                if ($active_tab == 'general_settings') {
-                    settings_fields('show_my_social_icons_all_settings');
-                    do_settings_sections('show_my_social_icons');
-                } else if ($active_tab == 'advanced_settings') {
-                    settings_fields('show_my_social_icons_advanced_settings');
-                    do_settings_sections('show_my_social_icons_advanced');
-                }
-                submit_button();
+            if ($active_tab == 'general_settings') {
+                settings_fields('show_my_social_icons_all_settings');
+                do_settings_sections('show_my_social_icons');
+                submit_button('Save Changes', 'primary', 'submit', false);
+            } else if ($active_tab == 'advanced_settings') {
+                settings_fields('show_my_social_icons_advanced_settings');
+                do_settings_sections('show_my_social_icons_advanced');
+                submit_button('Save Changes');
+            }
             ?>
         </form>
-    </div> <?php
+    </div>
+    <?php
 }
 
 /**
@@ -153,8 +155,67 @@ function smsi_setup_icon_style_settings() {
     add_settings_field('display_in_menu', 'Show All Icons in Main Menu', 'smsi_display_in_menu_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
     register_setting('show_my_social_icons_advanced_settings', 'display_in_menu', 'smsi_sanitize_display_in_menu');
 
+    add_settings_field('icon_spacing', 'Icon Spacing', 'smsi_icon_spacing_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_spacing', 'esc_attr');
+
+    add_settings_field('icon_container_margin_top', 'Container Top Margin', 'smsi_icon_container_margin_top_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_container_margin_top', 'esc_attr');
+
+    add_settings_field('icon_container_margin_right', 'Container Right Margin', 'smsi_icon_container_margin_right_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_container_margin_right', 'esc_attr');
+
+    add_settings_field('icon_container_margin_bottom', 'Container Bottom Margin', 'smsi_icon_container_margin_bottom_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_container_margin_bottom', 'esc_attr');
+
+    add_settings_field('icon_container_margin_left', 'Container Left Margin', 'smsi_icon_container_margin_left_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_container_margin_left', 'esc_attr');
+
     register_setting('show_my_social_icons_advanced_settings', 'icon_custom_filter', 'esc_attr');
+
+    add_settings_field('smsi_menu_location', 'Navigation Menu Location', 'smsi_menu_location_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'smsi_menu_location', 'esc_attr');
+
+    add_action('admin_footer', 'smsi_icon_type_script');
 }
+
+/**
+ * Icon Type Script
+ *
+ * @return void
+ */
+function smsi_icon_type_script() {
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        function updateIconStyleOptions() {
+            var iconType = $('#icon_type').val();
+            var $iconStyle = $('#icon_style');
+            var currentValue = $iconStyle.val();
+
+            $iconStyle.find('option').prop('disabled', false);
+
+            if (iconType === 'SVG') {
+                $iconStyle.find('option[value="Icon only full color"]').prop('disabled', true);
+                $iconStyle.find('option[value="Full logo horizontal"]').prop('disabled', true);
+                $iconStyle.find('option[value="Full logo square"]').prop('disabled', true);
+                if (currentValue === 'Icon only full color' || currentValue === 'Full logo horizontal' || currentValue === 'Full logo square') {
+                    $iconStyle.val('Icon only black');
+                }
+            } else {
+                $iconStyle.find('option[value="Icon only custom color"]').prop('disabled', true);
+                if (currentValue === 'Icon only custom color') {
+                    $iconStyle.val('Icon only full color');
+                }
+            }
+        }
+
+        $('#icon_type').on('change', updateIconStyleOptions);
+        updateIconStyleOptions(); // Run on page load
+    });
+    </script>
+    <?php
+}
+
 
 /**
  * Icon Style Settings Callbacks
@@ -163,7 +224,7 @@ function smsi_setup_icon_style_settings() {
  */
 function smsi_icon_type_callback() {
     $value = get_option('icon_type', 'PNG');
-    echo "<select name='icon_type'>
+    echo "<select id='icon_type' name='icon_type'>
             <option value='SVG' " . selected($value, 'SVG', false) . ">SVG</option>
             <option value='PNG' " . selected($value, 'PNG', false) . ">PNG (default)</option>
           </select>";
@@ -185,8 +246,8 @@ function smsi_icon_size_callback() {
  * @return void
  */
 function smsi_icon_style_callback() {
-    $value = get_option('icon_style', 'Icon Only in full color');
-    echo "<select name='icon_style'>
+    $value = get_option('icon_style', 'Icon only full color');
+    echo "<select id='icon_style' name='icon_style'>
             <option value='Icon only full color' " . selected($value, 'Icon only full color', false) . ">Icon Only in full color</option>
             <option value='Icon only black' " . selected($value, 'Icon only black', false) . ">Icon Only in black</option>
             <option value='Icon only white' " . selected($value, 'Icon only white', false) . ">Icon Only in white</option>
@@ -216,15 +277,13 @@ function smsi_icon_alignment_callback() {
  * @return void
  */
 function smsi_icon_custom_color_callback() {
-    $color_value = get_option('icon_custom_color', '#000000');
+    $color_value = get_option('icon_custom_color', '');
     echo "<input type='color' id='icon_custom_color' name='icon_custom_color' value='" . esc_attr($color_value) . "' />";
+    echo "<button type='button' id='clear_custom_color' class='button button-secondary'>Clear Custom Color</button>";
     echo "<script>
-    document.getElementById('icon_custom_color').addEventListener('input', function(e) {
-        const rgb = window.hexToRgb(e.target.value);
-        const color = new window.Color(...rgb);
-        const solver = new window.Solver(color);
-        const result = solver.solve();
-        console.log(result.filter); // You might want to update some DOM element with this value or handle it differently
+    document.getElementById('clear_custom_color').addEventListener('click', function() {
+        document.getElementById('icon_custom_color').value = '';
+        document.getElementById('icon_custom_color').dispatchEvent(new Event('change'));
     });
     </script>";
 }
@@ -238,6 +297,56 @@ function smsi_display_in_menu_callback() {
     $value = get_option('display_in_menu', '0'); // Assuming '0' means not displayed, '1' means displayed
     $checked = checked(1, $value, false);
     echo "<input type='checkbox' name='display_in_menu' value='1'" . $checked . " />";
+}
+
+/**
+ * Icon Spacing Callback
+ *
+ * @return void
+ */
+function smsi_icon_spacing_callback() {
+    $value = get_option('icon_spacing', '10px');
+    echo "<input type='text' name='icon_spacing' value='" . esc_attr($value) . "' />";
+    echo "<p class='description'>Enter the spacing between icons (e.g., 10px, 1em)</p>";
+}
+
+/**
+ * Container Margin Callbacks
+ *
+ * @return void
+ */
+function smsi_icon_container_margin_top_callback() {
+    $value = get_option('icon_container_margin_top', '0px');
+    echo "<input type='text' name='icon_container_margin_top' value='" . esc_attr($value) . "' />";
+    echo "<p class='description'>Enter the top margin for the icon container (e.g., 10px, 1em)</p>";
+}
+
+function smsi_icon_container_margin_right_callback() {
+    $value = get_option('icon_container_margin_right', '0px');
+    echo "<input type='text' name='icon_container_margin_right' value='" . esc_attr($value) . "' />";
+    echo "<p class='description'>Enter the right margin for the icon container (e.g., 10px, 1em)</p>";
+}
+
+function smsi_icon_container_margin_bottom_callback() {
+    $value = get_option('icon_container_margin_bottom', '0px');
+    echo "<input type='text' name='icon_container_margin_bottom' value='" . esc_attr($value) . "' />";
+    echo "<p class='description'>Enter the bottom margin for the icon container (e.g., 10px, 1em)</p>";
+}
+
+function smsi_icon_container_margin_left_callback() {
+    $value = get_option('icon_container_margin_left', '0px');
+    echo "<input type='text' name='icon_container_margin_left' value='" . esc_attr($value) . "' />";
+    echo "<p class='description'>Enter the left margin for the icon container (e.g., 10px, 1em)</p>";
+}
+
+function smsi_menu_location_callback() {
+    $value = get_option('smsi_menu_location', 'primary');
+    $menus = get_registered_nav_menus();
+    echo "<select name='smsi_menu_location'>";
+    foreach ($menus as $location => $description) {
+        echo "<option value='" . esc_attr($location) . "' " . selected($value, $location, false) . ">" . esc_html($description) . "</option>";
+    }
+    echo "</select>";
 }
 
 /**
@@ -302,30 +411,51 @@ function smsi_shortcode_info_page_content() {
     <div class='wrap smsi-info-page'>
     <img src='" . esc_url($logo_url) . "' alt='Show My Social Icons' class='smsi-plugin-logo'>
     <h2>How to Display Your Social Icons</h2>
-        <p>Use the shortcodes below to display the icons anywhere on your site. You can customize their appearance using CSS and the shortcode attributes.</p>
-        
-        <p><strong>Logo or Icon Style Options</strong></p>
+        <p>To display the icons on your website, you can use the Gutenberg blocks, legacy widgets, or shortcodes.</p>
+        <p>Various options are available to customize the appearance of the icons, such as size, margin, alignment, and more.</p>
+
+    <h2><strong>Customizing Your Icons</strong></h2>
+        <h3><strong>Icon Types</strong></h3>
+        <ul>
+            <li>SVG</li>
+            <li>PNG</li>
+        </ul>
+
+        <h3><strong>Icon Styles</strong></h3>
+
+        <p><strong>SVG Icons:</strong></p>
+        <ul>
+            <li>Icon only black</li>
+            <li>Icon only white</li>
+            <li>Icon only custom color</li>
+        </ul>
+
+        <p><strong>PNG Icons:</strong></p>
         <ul>
             <li>Full logo horizontal</li>
             <li>Full logo square</li>
             <li>Icon only full color</li>
             <li>Icon only black</li>
             <li>Icon only white</li>
-            <li>Icon only custom color</li>
         </ul>
+        
+        <h2><strong>How to Use the Shortcodes</strong></h2>
+        <p>You can use the shortcodes to display the social media icons on your website. The shortcodes are:</p>
 
-        <h3>[show_my_social_icons]</h3>
-        <p>Displays all social icons. You can customize this shortcode with the following attributes:</p>
+        <h3><strong>[show_my_social_icons]</strong></h3>
+        <p>Displays all active social icons. You can customize this shortcode with the following attributes:</p>
         <ul>
             <li><strong>type</strong> - Specifies the icon type (SVG or PNG). Default is 'PNG'.</li>
             <li><strong>size</strong> - Specifies the size of the icons (e.g., '100px', '200px', '50%', '100%'). Default is '30px'.</li>
             <li><strong>style</strong> - Specifies the style of the icons (e.g., 'Icon only full color', 'Full logo horizontal'). Default is 'Icon only full color'.</li>
-            <li><strong>alignment</strong> - Aligns the icons (Left, Center, Left). Default is 'Center'.</li>
+            <li><strong>alignment</strong> - Aligns the icons (Left, Center, Right). Default is 'Center'.</li>
+            <li><strong>spacing</strong> - Specifies the spacing between icons (e.g., '10px', '1em').</li>
+            <li><strong>color</strong> - Specifies the color of the icons (e.g., 'red', '#000', '#fff'). Default is '#000'.</li>
         </ul>
-        <textarea id='shortcode1' style='width: 90%; height: 50px;'>[show_my_social_icons type=\"SVG\" size=\"150px\" style=\"Full logo square\" alignment=\"Center\"]</textarea><br>
+        <textarea id='shortcode1' style='width: 90%; height: 50px;'>[show_my_social_icons type=\"PNG\" size=\"30px\" style=\"Icon only full color\" alignment=\"Center\" spacing=\"10px\"]</textarea><br>
         <button onclick=\"copyToClipboard('#shortcode1')\">Copy Shortcode</button><br><br>
 
-        <h3>[my_social_icon]</h3>
+        <h3><strong>[my_social_icon]</strong></h3>
         <p>Displays a single social icon based on the platform specified. Attributes include:</p>
         <ul>
             <li><strong>platform</strong> - The platform for which to show the icon (e.g., 'facebook', 'twitter').</li>
@@ -333,15 +463,13 @@ function smsi_shortcode_info_page_content() {
             <li><strong>size</strong> - Icon size like '100px' or '100%'. Default is '30px'.</li>
             <li><strong>style</strong> - Specifies the style of the icons (e.g., 'Icon only full color', 'Full logo horizontal'). Default is 'Icon only full color'.</li>
             <li><strong>alignment</strong> - Text alignment. Default is 'Center'.</li>
+            <li><strong>color</strong> - Icon color. Default is '#000'.</li>
         </ul>
-        <textarea id='shortcode2' style='width: 90%; height: 50px;'>[my_social_icon platform=\"facebook\" type=\"SVG\" size=\"100px\" alignment=\"Right\"]</textarea><br>
+        <textarea id='shortcode2' style='width: 90%; height: 50px;'>[my_social_icon platform=\"facebook\" type=\"SVG\" size=\"50px\" style=\"Icon only white\" alignment=\"Center\"]</textarea><br>
         <button onclick=\"copyToClipboard('#shortcode2')\">Copy Shortcode</button><br><br>
-
-    <h2>Shortcode Settings</h2>
-    <p>You can control the type, size, style, and alignment of the icons using the shortcode attributes. All the possible attribute settings are detailed below.</p>
     
-    <h2>Platforms Supported</h2>
-    <p>Below is a list of the platforms this plugin currently supports.</p>
+    <h2><strong>Platforms Supported</strong></h2>
+    <p>Below is a list of the platforms this plugin currently supports. Use the platform ID in the shortcode attributes.</p>
     <table class='smsi-platform-list' cellspacing='0'><thead><th>Platform</th><th>Platform ID</th></thead>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/behance_icon_100px.png' class='smsi-icon'> Behance</td><td>behance</td></tr>
     <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/bitchute_icon_100px.png' class='smsi-icon'> Bitchute</td><td>bitchute</td></tr>
@@ -426,7 +554,7 @@ function smsi_icon_preview_page_content() {
     <div class='wrap smsi-icon-preview-page'>
         <img src='" . esc_url($logo_url) . "' alt='Show My Social Icons' class='smsi-plugin-logo'>
         <h2>Social Media Icon Preview</h2>
-        <p>Below is a table of all the social media icons currently supported by this plugin.</p><p>The icons have a <strong>transparent background</strong> and the icons in the PNG format are available in sizes 100px, 150px, 200px, 300px, and 500px. An animated background has been applied to give you an idea of what the icons will look like on different colored backgrounds.</p><p><strong>Tip:</strong> For clear and crisp icons that stretch to any size, we recommend using the SVG format as they can be made into any size without losing quality.</p>
+        <p>Below is a table of all the social media icons currently supported by this plugin.</p><p>The icons have a <strong>transparent background</strong> and the icons in the PNG format are available in sizes 100px, 150px, 200px, 300px, and 500px. An animated background has been applied to give you an idea of what the icons will look like on different colored backgrounds.</p>
         <table class='smsi-icon-preview-table' cellspacing='0'><thead><th class='smsi-thead-left'>Platform</th><th class='smsi-thead-left'>Platform ID</th><th>Horizontal</th><th>Square</th><th>Icon Only Full Color</th><th>Icon Only Black</th><th>Icon Only White</th></thead>
         <tr><td>Behance</td><td>behance</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/behance_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/behance_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         <tr><td>Bitchute</td><td>bitchute</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/bitchute_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/bitchute_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>

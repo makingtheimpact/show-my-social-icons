@@ -1,15 +1,19 @@
-# show-my-social-icons
-This plugin makes it easy to display social media icons anywhere on your website. 
+# Show My Social Icons
 
-## Description 
-Quickly and easily display links to your social media pages on your website and in the main menu using this lightweight plugin. Update all your social media links in one place, and have them automatically open in a new tab. Display them in your website's main site navigation, or use use the shortcodes to display them on your website. You can display individual icons or all of the icons where you have a URL specified. Icons use custom PNG or SVG files to display the brand icons or logos for all your social media links. 
+A WordPress plugin to easily display customizable social media icons anywhere on your website.
 
-For websites that support SVG files, you can enable the SVG version to have beautiful icons in any size. 
+## Description
 
-Shortcodes:
-[show_my_social_icons] - this displays all the social media icons that have URL values set.
+Show My Social Icons is a versatile WordPress plugin that allows you to add and manage social media icons on your website. It supports over 30 popular and alternative social media platforms, offering flexibility in display options.
 
-[my_social_icon platform="PLATFORM"] - this displays a single social media icon if the URL is set.
+### Key Features
+
+- Display icons in the main menu, widget areas, or anywhere using shortcodes and Gutenberg blocks
+- Choose between SVG and PNG icon formats
+- Customize icon size, style, alignment, and colors
+- Drag-and-drop ordering of icons
+- Search functionality to quickly find platforms
+- Individual icon display option
 
 The social media platforms currently supported are: 
 - Behance
@@ -53,66 +57,46 @@ The social media platforms currently supported are:
 - YouTube
 - Zelle
 
-
-
-### Features: 
-- Display social media icons as a group or individually
-- Display social media icons in the main menu
-- Display social media icons in widgets
-- Display social media icons in blocks
-- Display social media icons in shortcodes
-- Display social media icons in the footer
-- Display social media icons in the header
-- Display social media icons in the sidebar
-- Display social media icons in the content area
-- Display social media icons in the sidebar
-
-
-### How It Works: 
-Simply install the plugin, configure the settings, and then display the icons anywhere on your website using the shortcodes or widgets. Platforms that have a URL set will be displayed. 
-
-Add the link to your social media pages in the plugin settings and choose what order you want the icons to display in. Use the search function to find the social media platform you want to add. You can drag and drop the platforms to change the order. There is also an option to display the icons in the navigation menu.
-
-Specify the icon type, size, style, alignment, color, background color, border, border color, and border width.
-
-The settings page allows you to configure the following:
-- Icon type (PNG or SVG)
-- Icon size (10px to 100px)
-- Icon style (Icon only full color, Full logo horizontal, Full logo square)
-- Icon alignment (Left, Center, Right)
-- Icon color (Hex color code)
-- Icon background color (Hex color code)
-- Icon border (Yes or No)
-- Icon border color (Hex color code)
-- Icon border width (1px to 10px)
-
-- The plugin adds a new menu item to the WordPress menu.
-- The plugin adds a new widget to the WordPress widgets area.
-- The plugin adds a new block to the WordPress block editor.
-- The plugin adds a new shortcode to the WordPress shortcode area.
-- The plugin adds a new function to the WordPress functions area.
-
 ## Installation
-This plugin is only compatible with WordPress. To install it on your WordPress website, follow the directions below:
 
-1. Upload `show-my-social-icons` to the `/wp-content/plugins/` directory.
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Configure the plugin settings as needed.
+1. Upload the `show-my-social-icons` folder to the `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Configure the plugin settings under Settings -> Show My Social Icons
 
-## Frequently Asked Questions
-Q: Where can I display the icons?
-A: They can be displayed anywhere. You can display the icons in the main menu, widget areas, header, blocks, shortcodes, and footer. 
+## Usage
 
-Q: I want to use the SVG icons but they aren't displaying. Why not?
-A: The SVG feature is not available for all social media platforms. If a platform is not displaying as an SVG, make sure you have enabled SVGs in the settings and your website supports SVGs.
+### Shortcodes
 
-Q: What if I don't like the icons that are displayed?
-A: You can change the icons to your liking by editing the social media links in the plugin settings. You can preview the icons from the Social Icons menu on the Icon Preview page.
+- `[show_my_social_icons]`: Displays all configured social media icons
+- `[my_social_icon platform="facebook"]`: Displays a single social media icon
+
+### Documentation
+
+The plugin provides two Gutenberg blocks and two widgets:
+- Social Media Icons (All) - Displays all configured social media icons
+- Social Media Icons (Single) - Displays a single social media icon
+
+
+
+SVG icons are only available in black, white, or custom color.
+PNG icons are available in full color (proper logo branding color), black, or white. The logos are available in horizontal and square formats.
+
+If you try to use incorrect settings, the icons may not display properly or use default settings.
+
+
 
 ## Changelog
 
+### 1.0.72
+- Added custom color to the icons.
+- Fixed bug preventing SVG icons from displaying in the correct custom color.
+- Fixed settings for blocks and widgets to support available icon options. 
+- Removed SVG icons that were not displaying properly.
+- Added margin settings to icon containers.
+- Updated documentation and settings pages to reflect new features and changes.
+
 ### 1.0.71
-- Added widget to display icons in the footer and sidebar sections.
+- Added legacy widgets to display icons in the footer and sidebar sections.
 - Added Gutenberg blocks to display icons in the page builder.
 - Fixed alignment issue with the icons.
 

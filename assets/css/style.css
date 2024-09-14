@@ -65,3 +65,20 @@
 .smsi-single-icon-wrapper img {
     display: inline-block;
 }
+
+.smsi-single-icon-wrapper svg {
+    width: 100%;
+    height: auto;
+}
+
+.smsi-single-icon-wrapper a:hover svg, .smsi-single-icon-wrapper a:hover img {
+    opacity: 0.8;
+}
+
+.smsi-menu-icon {
+    opacity: 1;
+}
+
+.smsi-menu-icon:hover {
+    opacity: 0.8;
+}

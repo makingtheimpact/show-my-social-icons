@@ -19,9 +19,29 @@
             "type": "string",
             "default": "Icon only full color"
         },
+        "customColor": {
+            "type": "string",
+            "default": "#000000"
+        },
         "iconAlignment": {
             "type": "string",
             "default": "Center"
+        },
+        "marginTop": {
+            "type": "string",
+            "default": "0px"
+        },
+        "marginRight": {
+            "type": "string",
+            "default": "0px"
+        },
+        "marginBottom": {
+            "type": "string",
+            "default": "0px"
+        },
+        "marginLeft": {
+            "type": "string",
+            "default": "0px"
         }
     },
     "supports": {
