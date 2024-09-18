@@ -44,8 +44,11 @@ $smsi_plugin_dir_path = plugin_dir_url(__FILE__);
  * @return void
  */
 function smsi_enqueue_scripts() {
-    wp_enqueue_style('smsi-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css');
-    wp_enqueue_script('smsi-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', array('jquery'), '', true);
+    if (is_singular() && has_shortcode(get_post()->post_content, 'my_social_icon')) {
+        wp_enqueue_style('smsi-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', array(), '1.0.0');
+        wp_enqueue_script('smsi-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', array('jquery'), '1.0.0', true);
+        wp_script_add_data('smsi-script', 'async', true);
+    }
 }
 add_action('wp_enqueue_scripts', 'smsi_enqueue_scripts');
 
@@ -74,7 +77,8 @@ function smsi_admin_enqueue_scripts($hook) {
         'smsi-block-editor',
         plugin_dir_url(__FILE__) . 'build/index.js',
         array('wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor'),
-        filemtime(plugin_dir_path(__FILE__) . 'build/index.js')
+        filemtime(plugin_dir_path(__FILE__) . 'build/index.js'),
+        true
     );
 
     wp_localize_script('smsi-block-editor', 'smsiPlatforms', array(
@@ -218,3 +222,27 @@ add_action('rest_api_init', 'smsi_register_rest_route');
 function smsi_get_platforms() {
     return my_social_media_platforms();
 }
+
+function smsi_enqueue_styles() {
+    if (is_admin()) {
+        return;
+    }
+
+    global $post;
+    $enqueue_styles = false;
+
+    // Check if the post contains the shortcode
+    if (isset($post->post_content) && (has_shortcode($post->post_content, 'my_social_icon') || has_shortcode($post->post_content, 'show_my_social_icons'))) {
+        $enqueue_styles = true;
+    }
+
+    // Check if the social icons are displayed in the menu
+    if (get_option('display_in_menu', '1') === '1') {
+        $enqueue_styles = true;
+    }
+
+    if ($enqueue_styles) {
+        wp_enqueue_style('smsi-styles', plugin_dir_url(__FILE__) . 'assets/css/style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'smsi_enqueue_styles');

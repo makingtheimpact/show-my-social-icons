@@ -14,7 +14,7 @@
  */
 function smsi_enqueue_admin_styles() {
     global $smsi_plugin_dir_path;
-    wp_enqueue_style('smsi_admin_stylesheet', $smsi_plugin_dir_path . 'assets/css/admin-style.css');
+    wp_enqueue_style('smsi_admin_stylesheet', $smsi_plugin_dir_path . 'assets/css/admin-style.css', array(), '1.0.0');
 }
 add_action('admin_enqueue_scripts', 'smsi_enqueue_admin_styles');
 
@@ -56,19 +56,30 @@ add_action('admin_menu', 'smsi_create_plugin_settings_page');
  * @return void
  */
 function smsi_show_my_social_icons_page_content() { 
-    $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general_settings';
+    $nonce = wp_create_nonce('smsi_settings_nonce');
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'platform_settings';
+
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'smsi_settings_nonce')) {
+            wp_die('Security check failed');
+        }
+    }
+
     $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
     ?>
     <div class="wrap smsi-settings-page">
         <img src="<?php echo esc_url($logo_url); ?>" alt="Show My Social Icons" class="smsi-plugin-logo">
         <h2 class="nav-tab-wrapper">
-            <a href="?page=show_my_social_icons&tab=general_settings" class="nav-tab <?php echo $active_tab == 'general_settings' ? 'nav-tab-active' : ''; ?>">Platform Settings</a>
-            <a href="?page=show_my_social_icons&tab=advanced_settings" class="nav-tab <?php echo $active_tab == 'advanced_settings' ? 'nav-tab-active' : ''; ?>">Icon Style Settings</a>
+            <a href="<?php echo esc_url(add_query_arg(array('tab' => 'platform_settings', '_wpnonce' => $nonce), admin_url('admin.php?page=show_my_social_icons'))); ?>" class="nav-tab <?php echo $active_tab == 'platform_settings' ? 'nav-tab-active' : ''; ?>">Platform Settings</a>
+            <a href="<?php echo esc_url(add_query_arg(array('tab' => 'advanced_settings', '_wpnonce' => $nonce), admin_url('admin.php?page=show_my_social_icons'))); ?>" class="nav-tab <?php echo $active_tab == 'advanced_settings' ? 'nav-tab-active' : ''; ?>">Icon Style Settings</a>
+            <a href="<?php echo esc_url(add_query_arg(array('tab' => 'shortcode_info', '_wpnonce' => $nonce), admin_url('admin.php?page=show_my_social_icons'))); ?>" class="nav-tab <?php echo $active_tab == 'shortcode_info' ? 'nav-tab-active' : ''; ?>">Shortcode Info</a>
+            <a href="<?php echo esc_url(add_query_arg(array('tab' => 'icon_preview', '_wpnonce' => $nonce), admin_url('admin.php?page=show_my_social_icons'))); ?>" class="nav-tab <?php echo $active_tab == 'icon_preview' ? 'nav-tab-active' : ''; ?>">Icon Preview</a>
         </h2>
         
         <form method="post" action="options.php" id="smsi-settings-form">
+            <?php wp_nonce_field('smsi_settings_nonce'); ?>
             <?php
-            if ($active_tab == 'general_settings') {
+            if ($active_tab == 'platform_settings') {
                 settings_fields('show_my_social_icons_all_settings');
                 do_settings_sections('show_my_social_icons');
                 submit_button('Save Changes', 'primary', 'submit', false);
@@ -76,6 +87,10 @@ function smsi_show_my_social_icons_page_content() {
                 settings_fields('show_my_social_icons_advanced_settings');
                 do_settings_sections('show_my_social_icons_advanced');
                 submit_button('Save Changes');
+            } else if ($active_tab == 'shortcode_info') {
+                smsi_shortcode_info_page_content();
+            } else if ($active_tab == 'icon_preview') {
+                smsi_icon_preview_page_content();
             }
             ?>
         </form>
@@ -174,6 +189,26 @@ function smsi_setup_icon_style_settings() {
 
     add_settings_field('smsi_menu_location', 'Navigation Menu Location', 'smsi_menu_location_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
     register_setting('show_my_social_icons_advanced_settings', 'smsi_menu_location', 'esc_attr');
+
+    // Add a new setting for hover effect
+    add_settings_field(
+        'icon_hover_effect',
+        'Icon Hover Effect',
+        'show_my_social_icons_hover_effect_callback',
+        'show_my_social_icons_advanced',
+        'show_my_social_icons_settings_section'
+    );
+
+    register_setting('show_my_social_icons_advanced_settings', 'icon_hover_effect');
+
+    function show_my_social_icons_hover_effect_callback() {
+        $value = get_option('icon_hover_effect', 'style1');
+        echo "<select id='icon_hover_effect' name='icon_hover_effect'>
+                <option value='style1'" . selected($value, 'style1', false) . ">Default (Opacity)</option>
+                <option value='style2'" . selected($value, 'style2', false) . ">Scale Up</option>
+                <option value='style3'" . selected($value, 'style3', false) . ">Rotate</option>
+              </select>";
+    }
 
     add_action('admin_footer', 'smsi_icon_type_script');
 }
@@ -295,8 +330,7 @@ function smsi_icon_custom_color_callback() {
  */
 function smsi_display_in_menu_callback() {
     $value = get_option('display_in_menu', '0'); // Assuming '0' means not displayed, '1' means displayed
-    $checked = checked(1, $value, false);
-    echo "<input type='checkbox' name='display_in_menu' value='1'" . $checked . " />";
+    echo '<input type="checkbox" name="display_in_menu" value="1"' . checked(1, $value, false) . ' />';
 }
 
 /**
@@ -521,11 +555,11 @@ function smsi_shortcode_info_page_content() {
     }
     </script>
     ";
-    echo $shortcode_info_page_content;
+    echo wp_kses_post($shortcode_info_page_content);
 }
 
 /**
- * Icon Preview Page
+ * Icon Preview Pagestrip_tags
  *
  * @return void
  */
@@ -598,5 +632,5 @@ function smsi_icon_preview_page_content() {
         <tr><td>Zelle</td><td>zelle</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/zelle_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/zelle_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
         </table>
     ";
-    echo $icon_preview_page_html;
+    echo wp_kses_post($icon_preview_page_html);
 }

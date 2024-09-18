@@ -116,11 +116,11 @@ function smsi_platform_fields_callback() {
     $all_platforms = array_merge($set_platforms, $unset_platforms);
     
     foreach ($all_platforms as $platform) {
-        echo "<div class='smsi-platform-fields' data-platform='{$platform['name']}' data-id='{$platform['id']}'>";
+        echo "<div class='smsi-platform-fields' data-platform='" . esc_attr($platform['name']) . "' data-id='" . esc_attr($platform['id']) . "'>";
         echo "<span class='smsi-drag-handle dashicons dashicons-move'></span>";
-        echo "<label class='smsi-platform-label'>{$platform['name']}</label>";
-        echo "<input type='url' name='{$platform['id']}_url' value='" . esc_attr($platform['url']) . "' class='regular-text smsi-url-field' placeholder='Enter URL' />";
-        echo "<input type='number' name='{$platform['id']}_order' value='" . esc_attr($platform['order']) . "' class='small-text smsi-order-field' readonly />";
+        echo "<label class='smsi-platform-label'>" . esc_html($platform['name']) . "</label>";
+        echo "<input type='url' name='" . esc_attr($platform['id']) . "_url' value='" . esc_attr($platform['url']) . "' class='regular-text smsi-url-field' placeholder='" . esc_attr__('Enter URL', 'show-my-social-icons') . "' />";
+        echo "<input type='number' name='" . esc_attr($platform['id']) . "_order' value='" . esc_attr($platform['order']) . "' class='small-text smsi-order-field' readonly />";
         echo "</div>";
     }
     echo '</div>';

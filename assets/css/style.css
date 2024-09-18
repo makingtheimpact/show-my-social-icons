@@ -1,7 +1,7 @@
 .my-social-icons {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center; /* Default center alignment */
 }
 
 .my-social-icons[style*="text-align: left"] {
@@ -71,14 +71,34 @@
     height: auto;
 }
 
-.smsi-single-icon-wrapper a:hover svg, .smsi-single-icon-wrapper a:hover img {
-    opacity: 0.8;
+/* Default hover effect */
+.smsi-icon-hover-style1 a:hover svg, .smsi-icon-hover-style1 a:hover img,
+.smsi-icon-hover-style1:hover svg, .smsi-icon-hover-style1:hover img {
+    opacity: 0.7;
 }
 
-.smsi-menu-icon {
-    opacity: 1;
+/* Hover effect 2: Scale up */
+.smsi-icon-hover-style2 a:hover svg, .smsi-icon-hover-style2 a:hover img,
+.smsi-icon-hover-style2:hover svg, .smsi-icon-hover-style2:hover img {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+    opacity: 0.9;
 }
 
-.smsi-menu-icon:hover {
-    opacity: 0.8;
+/* Hover effect 3: Rotate */
+.smsi-icon-hover-style3 a:hover svg, .smsi-icon-hover-style3 a:hover img,
+.smsi-icon-hover-style3:hover svg, .smsi-icon-hover-style3:hover img {
+    transform: rotate(15deg);
+    transition: transform 0.3s ease;
+    opacity: 0.9;
 }
+
+.smsi-icon-wrapper {
+    display: inline-block;
+    margin-right: 10px; /* Default spacing */
+}
+
+.smsi-icon-wrapper:last-child {
+    margin-right: 0; /* Remove margin for the last icon */
+}
+

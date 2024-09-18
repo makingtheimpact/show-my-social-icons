@@ -18,13 +18,13 @@ class SMSI_All_Icons_Widget extends WP_Widget {
     }
 
     public function widget($args, $instance) {
-        echo $args['before_widget'];
+        echo wp_kses_post($args['before_widget']);
         $margin_top = smsi_sanitize_margin(isset($instance['margin_top']) ? $instance['margin_top'] : '0');
         $margin_right = smsi_sanitize_margin(isset($instance['margin_right']) ? $instance['margin_right'] : '0');
         $margin_bottom = smsi_sanitize_margin(isset($instance['margin_bottom']) ? $instance['margin_bottom'] : '0');
         $margin_left = smsi_sanitize_margin(isset($instance['margin_left']) ? $instance['margin_left'] : '0');
         echo do_shortcode("[show_my_social_icons type=\"{$instance['icon_type']}\" size=\"{$instance['icon_size']}\" style=\"{$instance['icon_style']}\" alignment=\"{$instance['icon_alignment']}\" custom_color=\"{$instance['custom_color']}\" spacing=\"{$instance['spacing']}\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\"]");
-        echo $args['after_widget'];
+        echo wp_kses_post($args['after_widget']);
     }
 
     public function form($instance) {
@@ -41,19 +41,19 @@ class SMSI_All_Icons_Widget extends WP_Widget {
 
         ?>
         <p>
-            <label for="<?php echo $this->get_field_id('icon_type'); ?>">Icon Type:</label>
-            <select class="widefat" id="<?php echo $this->get_field_id('icon_type'); ?>" name="<?php echo $this->get_field_name('icon_type'); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('icon_type')); ?>">Icon Type:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_type')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_type')); ?>">
                 <option value="PNG" <?php selected($icon_type, 'PNG'); ?>>PNG</option>
                 <option value="SVG" <?php selected($icon_type, 'SVG'); ?>>SVG</option>
             </select>
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('icon_size'); ?>">Icon Size:</label>
-            <input class="widefat" id="<?php echo $this->get_field_id('icon_size'); ?>" name="<?php echo $this->get_field_name('icon_size'); ?>" type="text" value="<?php echo esc_attr($icon_size); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('icon_size')); ?>">Icon Size:</label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_size')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_size')); ?>" type="text" value="<?php echo esc_attr($icon_size); ?>">
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('icon_style'); ?>">Icon Style:</label>
-            <select class="widefat" id="<?php echo $this->get_field_id('icon_style'); ?>" name="<?php echo $this->get_field_name('icon_style'); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('icon_style')); ?>">Icon Style:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_style')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_style')); ?>">
                 <option value="Icon only full color" <?php selected($icon_style, 'Icon only full color'); ?>>Icon only full color</option>
                 <option value="Icon only black" <?php selected($icon_style, 'Icon only black'); ?>>Icon only black</option>
                 <option value="Icon only white" <?php selected($icon_style, 'Icon only white'); ?>>Icon only white</option>
@@ -63,46 +63,46 @@ class SMSI_All_Icons_Widget extends WP_Widget {
             </select>
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('icon_alignment'); ?>">Icon Alignment:</label>
-            <select class="widefat" id="<?php echo $this->get_field_id('icon_alignment'); ?>" name="<?php echo $this->get_field_name('icon_alignment'); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('icon_alignment')); ?>">Icon Alignment:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_alignment')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_alignment')); ?>">
                 <option value="Left" <?php selected($icon_alignment, 'Left'); ?>>Left</option>
                 <option value="Center" <?php selected($icon_alignment, 'Center'); ?>>Center</option>
                 <option value="Right" <?php selected($icon_alignment, 'Right'); ?>>Right</option>
             </select>
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('custom_color'); ?>">Custom Color:</label>
-            <input class="widefat" id="<?php echo $this->get_field_id('custom_color'); ?>" name="<?php echo $this->get_field_name('custom_color'); ?>" type="text" value="<?php echo esc_attr($custom_color); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('custom_color')); ?>">Custom Color:</label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('custom_color')); ?>" name="<?php echo esc_attr($this->get_field_name('custom_color')); ?>" type="text" value="<?php echo esc_attr($custom_color); ?>">
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('spacing'); ?>">Icon Spacing:</label>
-            <input class="widefat" id="<?php echo $this->get_field_id('spacing'); ?>" name="<?php echo $this->get_field_name('spacing'); ?>" type="text" value="<?php echo esc_attr($spacing); ?>">
+            <label for="<?php echo esc_attr($this->get_field_id('spacing')); ?>">Icon Spacing:</label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('spacing')); ?>" name="<?php echo esc_attr($this->get_field_name('spacing')); ?>" type="text" value="<?php echo esc_attr($spacing); ?>">
         </p>
         <p>
             <label>Container Margins (px):</label>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <input style="width: 48%;" type="number" id="<?php echo $this->get_field_id('margin_top'); ?>" name="<?php echo $this->get_field_name('margin_top'); ?>" value="<?php echo esc_attr($margin_top); ?>" placeholder="Top">
-                <input style="width: 48%;" type="number" id="<?php echo $this->get_field_id('margin_bottom'); ?>" name="<?php echo $this->get_field_name('margin_bottom'); ?>" value="<?php echo esc_attr($margin_bottom); ?>" placeholder="Bottom">
+                <input style="width: 48%;" type="number" id="<?php echo esc_attr($this->get_field_id('margin_top')); ?>" name="<?php echo esc_attr($this->get_field_name('margin_top')); ?>" value="<?php echo esc_attr($margin_top); ?>" placeholder="Top">
+                <input style="width: 48%;" type="number" id="<?php echo esc_attr($this->get_field_id('margin_bottom')); ?>" name="<?php echo esc_attr($this->get_field_name('margin_bottom')); ?>" value="<?php echo esc_attr($margin_bottom); ?>" placeholder="Bottom">
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <input style="width: 48%;" type="number" id="<?php echo $this->get_field_id('margin_left'); ?>" name="<?php echo $this->get_field_name('margin_left'); ?>" value="<?php echo esc_attr($margin_left); ?>" placeholder="Left">
-                <input style="width: 48%;" type="number" id="<?php echo $this->get_field_id('margin_right'); ?>" name="<?php echo $this->get_field_name('margin_right'); ?>" value="<?php echo esc_attr($margin_right); ?>" placeholder="Right">
+                <input style="width: 48%;" type="number" id="<?php echo esc_attr($this->get_field_id('margin_left')); ?>" name="<?php echo esc_attr($this->get_field_name('margin_left')); ?>" value="<?php echo esc_attr($margin_left); ?>" placeholder="Left">
+                <input style="width: 48%;" type="number" id="<?php echo esc_attr($this->get_field_id('margin_right')); ?>" name="<?php echo esc_attr($this->get_field_name('margin_right')); ?>" value="<?php echo esc_attr($margin_right); ?>" placeholder="Right">
             </div>
         </p>
         <p>
-            <button type="button" class="button" id="<?php echo $this->get_field_id('link_margins'); ?>">Link Margins</button>
+            <button type="button" class="button" id="<?php echo esc_attr($this->get_field_id('link_margins')); ?>">Link Margins</button>
         </p>
         <?php
     }
 
     public function update($new_instance, $old_instance) {
         $instance = array();
-        $instance['icon_type'] = (!empty($new_instance['icon_type'])) ? strip_tags($new_instance['icon_type']) : '';
-        $instance['icon_size'] = (!empty($new_instance['icon_size'])) ? strip_tags($new_instance['icon_size']) : '';
-        $instance['icon_style'] = (!empty($new_instance['icon_style'])) ? strip_tags($new_instance['icon_style']) : '';
-        $instance['icon_alignment'] = (!empty($new_instance['icon_alignment'])) ? strip_tags($new_instance['icon_alignment']) : '';
-        $instance['custom_color'] = (!empty($new_instance['custom_color'])) ? strip_tags($new_instance['custom_color']) : '';
-        $instance['spacing'] = (!empty($new_instance['spacing'])) ? strip_tags($new_instance['spacing']) : '';
+        $instance['icon_type'] = (!empty($new_instance['icon_type'])) ? wp_strip_all_tags($new_instance['icon_type']) : '';
+        $instance['icon_size'] = (!empty($new_instance['icon_size'])) ? wp_strip_all_tags($new_instance['icon_size']) : '';
+        $instance['icon_style'] = (!empty($new_instance['icon_style'])) ? wp_strip_all_tags($new_instance['icon_style']) : '';
+        $instance['icon_alignment'] = (!empty($new_instance['icon_alignment'])) ? wp_strip_all_tags($new_instance['icon_alignment']) : '';
+        $instance['custom_color'] = (!empty($new_instance['custom_color'])) ? wp_strip_all_tags($new_instance['custom_color']) : '';
+        $instance['spacing'] = (!empty($new_instance['spacing'])) ? wp_strip_all_tags($new_instance['spacing']) : '';
         $instance['margin_top'] = (!empty($new_instance['margin_top'])) ? intval($new_instance['margin_top']) : 0;
         $instance['margin_right'] = (!empty($new_instance['margin_right'])) ? intval($new_instance['margin_right']) : 0;
         $instance['margin_bottom'] = (!empty($new_instance['margin_bottom'])) ? intval($new_instance['margin_bottom']) : 0;

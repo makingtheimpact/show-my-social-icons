@@ -77,43 +77,9 @@ function show_my_social_icons_file_path($type, $size, $style) {
     if ($type == 'SVG') {
         $icon_path_dir = "assets/svg/";
         $icon_file_name_start = "social_media_";
-        switch($style) {
-            case 'Full logo horizontal': 
-                $icon_path_style = "logos_set_hz_";
-                $icon_path_style_dir = "hz/";
-                $icon_file_name_style = "_logo";
-                break; 
-            case 'Full logo square': 
-                $icon_path_style = "logos_set_";
-                $icon_path_style_dir = "sq/";
-                $icon_file_name_style = "_logo";
-                break; 
-            case 'Icon only full color': 
-                $icon_path_style = "icons_full_color_";
-                $icon_path_style_dir = "ic-c/";
-                $icon_file_name_style = "_icon";
-                break; 
-            case 'Icon only black': 
-                $icon_path_style = "icons_black_";
-                $icon_path_style_dir = "ic-b/";
-                $icon_file_name_style = "_icon";
-                break; 
-            case 'Icon only white': 
-                $icon_path_style = "icons_white_";
-                $icon_path_style_dir = "ic-w/";
-                $icon_file_name_style = "_icon";
-                break; 
-            case 'Icon only custom color': 
-                $icon_path_style = "icons_black_";
-                $icon_path_style_dir = "ic-b/";
-                $icon_file_name_style = "_icon";
-                break; 
-            default: 
-                $icon_path_style = "icons_full_color_";
-                $icon_path_style_dir = "ic-c/";
-                $icon_file_name_style = "_icon";
-                break; 
-        }
+        $icon_path_style = "icons_black_";
+        $icon_path_style_dir = "ic-b/";
+        $icon_file_name_style = "_icon";
         $icon_path_start = $icon_path_dir . $icon_path_style_dir . $icon_file_name_start . $icon_path_style; 
         $icon_file_name_end = $icon_file_name_style . ".svg";
     } else {
@@ -162,8 +128,8 @@ function show_my_social_icons_file_path($type, $size, $style) {
                 $icon_path_style_dir = "ic-w/";
                 break; 
             default: 
-                $icon_path_style = "_logo_";
-                $icon_path_style_dir = "sq/";
+                $icon_path_style = "_icon_";
+                $icon_path_style_dir = "ic-c/";
                 break;
         }
         $icon_path_start = $icon_path_dir . $icon_path_style_dir . $icon_dir_size; 
@@ -191,52 +157,53 @@ function my_social_icons_add_menu_icons($items, $args) {
             if ($url) {
                 list($icon_path_start, $icon_file_name_end) = show_my_social_icons_file_path($icon_type, $icon_size, $icon_style);
                 $icon_path = SMSI_PLUGIN_DIR . $icon_path_start . strtolower($platform) . $icon_file_name_end;
-                
+
                 if ($icon_type === 'SVG') {
-                    $icon_path = plugin_dir_path(SMSI_PLUGIN_FILE) . $icon_path_start . strtolower($platform) . $icon_file_name_end;
-                    $svg_content = file_get_contents($icon_path);
+                    $svg_content = smsi_get_file_contents($icon_path);
 
                     // Generate a unique ID for this SVG
                     $unique_id = 'smsi-' . $platform . '-' . uniqid();
+
+                    // Determine the fill color
+                    $svg_fill = '#000000';
+                    if ($icon_style === 'Icon only custom color' && !empty($custom_color)) {
+                        $svg_fill = $custom_color;
+                    } elseif ($icon_style === 'Icon only white') {
+                        $svg_fill = '#FFFFFF';
+                    } elseif ($icon_style === 'Icon only black') {
+                        $svg_fill = '#000000';
+                    }
 
                     // Remove the existing style tag
                     $svg_content = preg_replace('/<style>.*?<\/style>/s', '', $svg_content);
 
                     // Add a new style tag with scoped styles
                     $svg_content = preg_replace('/<svg /', '<svg style="width: ' . esc_attr($icon_size) . '; height: auto;" ', $svg_content);
-                    $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' { fill: url(#' . $unique_id . '-gradient); }</style>', $svg_content);
+                    $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' .cls-1 { fill: ' . esc_attr($svg_fill) . '; }</style>', $svg_content);
 
-                    // Update class names and gradient IDs to be unique
-                    $svg_content = preg_replace('/class="cls-1"/', 'class="' . $unique_id . '"', $svg_content);
-                    $svg_content = preg_replace('/id="linear-gradient"/', 'id="' . $unique_id . '-gradient"', $svg_content);
+                    // Update class names to be unique
+                    $svg_content = preg_replace('/class="cls-([0-9]+)"/', 'class="' . $unique_id . ' cls-$1"', $svg_content);
 
-                    if ($icon_style !== 'Icon only full color') {
-                        $fill_color = '#000000';
-                        if ($icon_style === 'Icon only white') {
-                            $fill_color = '#FFFFFF';
-                        } elseif ($icon_style === 'Icon only custom color' && !empty($custom_color)) {
-                            $fill_color = $custom_color;
-                        }
+                    // Get the hover effect class
+                    $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
 
-                        // Replace the gradient with a solid color
-                        $svg_content = preg_replace('/<linearGradient.*?<\/linearGradient>/s', '', $svg_content);
-                        $svg_content = str_replace('url(#' . $unique_id . '-gradient)', $fill_color, $svg_content);
-                    }
-
-                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon" style="margin-right: ' . esc_attr($icon_spacing) . ';">' . $svg_content . '</a>';
+                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="' . $unique_id . ' smsi-menu-icon ' . $hover_effect_class . '" style="margin-right: ' . esc_attr($icon_spacing) . '; width: ' . esc_attr($icon_size) . '; height: auto;">' . $svg_content . '</a>';
                 } else {
+                    // Get the hover effect class
+                    $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
                     $icon_url = plugins_url($icon_path_start . strtolower($platform) . $icon_file_name_end, SMSI_PLUGIN_FILE);
-                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon" style="margin-right: ' . esc_attr($icon_spacing) . ';"><img src="' . esc_url($icon_url) . '" style="width: ' . esc_attr($icon_size) . '; height: auto;" alt="' . esc_attr($platform) . '"></a>';
+                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon ' . $hover_effect_class . '" style="margin-right: ' . esc_attr($icon_spacing) . ';"><img src="' . esc_url($icon_url) . '" style="width: ' . esc_attr($icon_size) . '; height: auto;" alt="' . esc_attr($platform) . '"></a>';
+
                 }
-                
+
                 $icons[(int)$order] = $icon_html;
             }
         }
-        
+
         ksort($icons);
         $items .= implode('', $icons);
     }
-    
+
     return $items;
 }
 add_filter('wp_nav_menu_items', 'my_social_icons_add_menu_icons', 10, 2);
@@ -253,4 +220,11 @@ function smsi_render_social_icons_block($attributes) {
 function smsi_hex_to_filter($hex) {
     list($r, $g, $b) = sscanf($hex, "#%02x%02x%02x");
     return "invert(" . round($r / 2.55) . "%) sepia(" . round($g / 2.55) . "%) saturate(" . round($b / 2.55) . "%) hue-rotate(" . round(($r + $g + $b) / 765 * 360) . "deg)";
+}
+
+function smsi_get_file_contents($file_path) {
+    global $wp_filesystem;
+    require_once (ABSPATH . '/wp-admin/includes/file.php');
+    WP_Filesystem();
+    return $wp_filesystem->get_contents($file_path);
 }

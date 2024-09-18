@@ -77,7 +77,7 @@ function smsi_show_my_social_icons_shortcode($atts) {
         $shortcode = "[my_social_icon platform='$platform' type='{$atts['type']}' size='{$atts['size']}' style='{$atts['style']}' alignment='{$atts['alignment']}' custom_color='{$atts['custom_color']}']";
         $icon_html = do_shortcode($shortcode);
         if (!empty($icon_html)) {
-            $ordered_icons[$order] = "<div class='smsi-icon-wrapper' style='display: inline-block; margin-right: {$atts['spacing']};'>{$icon_html}</div>";
+            $ordered_icons[$order] = "<div class='smsi-icon-wrapper' style='margin-right: {$atts['spacing']};'>{$icon_html}</div>";
         }
     }
     ksort($ordered_icons);
@@ -111,16 +111,6 @@ function smsi_show_my_social_icon_shortcode($atts) {
         $atts
     );
 
-    if ($atts['type'] === 'SVG') {
-        if (!in_array($atts['style'], ['Icon only black', 'Icon only white', 'Icon only custom color'])) {
-            $atts['style'] = 'Icon only black';
-        }
-    } else {
-        if ($atts['style'] === 'Icon only custom color') {
-            $atts['style'] = 'Icon only full color';
-        }
-    }
-
     $container_style = "text-align: " . esc_attr(strtolower($atts['alignment'])) . "; " .
                        "margin-top: " . esc_attr($atts['margin_top']) . "; " .
                        "margin-right: " . esc_attr($atts['margin_right']) . "; " .
@@ -128,7 +118,6 @@ function smsi_show_my_social_icon_shortcode($atts) {
                        "margin-left: " . esc_attr($atts['margin_left']) . ";";
 
     $icon_inline_styles = "style='width: " . esc_attr($atts['size']) . "; height: auto;";
-
     if ($atts['style'] === 'Icon only custom color') {
         $icon_inline_styles .= " fill: " . esc_attr($atts['custom_color']) . ";";
     }
@@ -142,38 +131,39 @@ function smsi_show_my_social_icon_shortcode($atts) {
         if ($url) {
             $icon_path = SMSI_PLUGIN_DIR . $icon_path_start . $platform . $icon_file_name_end;
             if ($atts['type'] === 'SVG') {
-                $svg_content = file_get_contents($icon_path);
+                $svg_content = smsi_get_file_contents($icon_path);
 
                 // Generate a unique ID for this SVG
                 $unique_id = 'smsi-' . $platform . '-' . uniqid();
+
+                // Determine the fill color
+                $svg_fill = '#000000';
+                if ($atts['style'] === 'Icon only custom color' && !empty($atts['custom_color'])) {
+                    $svg_fill = $atts['custom_color'];
+                } elseif ($atts['style'] === 'Icon only white') {
+                    $svg_fill = '#FFFFFF';
+                } elseif ($atts['style'] === 'Icon only black') {
+                    $svg_fill = '#000000';
+                }
 
                 // Remove the existing style tag
                 $svg_content = preg_replace('/<style>.*?<\/style>/s', '', $svg_content);
 
                 // Add a new style tag with scoped styles
-                $svg_content = preg_replace('/<svg /', '<svg ' . $icon_inline_styles . ' ', $svg_content);
-                $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' { fill: url(#' . $unique_id . '-gradient); }</style>', $svg_content);
+                $svg_content = preg_replace('/<svg /', '<svg style="width: ' . esc_attr($atts['size']) . '; height: auto;" ', $svg_content);
+                $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' .cls-1 { fill: ' . esc_attr($svg_fill) . '; }</style>', $svg_content);
 
-                // Update class names and gradient IDs to be unique
-                $svg_content = preg_replace('/class="cls-1"/', 'class="' . $unique_id . '"', $svg_content);
-                $svg_content = preg_replace('/id="linear-gradient"/', 'id="' . $unique_id . '-gradient"', $svg_content);
+                // Update class names to be unique
+                $svg_content = preg_replace('/class="cls-([0-9]+)"/', 'class="' . $unique_id . ' cls-$1"', $svg_content);
 
-                if ($atts['style'] !== 'Icon only full color') {
-                    $fill_color = '#000000';
-                    if ($atts['style'] === 'Icon only white') {
-                        $fill_color = '#FFFFFF';
-                    } elseif ($atts['style'] === 'Icon only custom color' && !empty($atts['custom_color'])) {
-                        $fill_color = $atts['custom_color'];
-                    }
+                // Get the hover effect class
+                $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
 
-                    // Replace the gradient with a solid color
-                    $svg_content = preg_replace('/<linearGradient.*?<\/linearGradient>/s', '', $svg_content);
-                    $svg_content = str_replace('url(#' . $unique_id . '-gradient)', $fill_color, $svg_content);
-                }
-
-                return "<div class='smsi-single-icon-wrapper' style='" . $container_style . "'><a href='" . esc_url($url) . "' target='_blank'>$svg_content</a></div>";
+                return "<div class='" . $unique_id . " smsi-single-icon-wrapper " . $hover_effect_class . "' style='" . $container_style . "'><a href='" . esc_url($url) . "' target='_blank'>$svg_content</a></div>";
             } else {
-                return "<div class='smsi-single-icon-wrapper' style='" . $container_style . "'><a href='" . esc_url($url) . "' target='_blank'><img src='" . plugin_dir_url(__FILE__) . '../' . $icon_path_start . $platform . $icon_file_name_end . "' class='smsi-icon smsi-icon-$platform' $icon_inline_styles /></a></div>";
+                // Get the hover effect class
+                $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
+                return "<div class='smsi-single-icon-wrapper " . $hover_effect_class . "' style='" . $container_style . "'><a href='" . esc_url($url) . "' target='_blank'><img src='" . plugin_dir_url(__FILE__) . '../' . $icon_path_start . $platform . $icon_file_name_end . "' class='smsi-icon smsi-icon-$platform' $icon_inline_styles /></a></div>";
             }
         }
     }
