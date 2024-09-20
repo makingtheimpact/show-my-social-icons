@@ -142,6 +142,10 @@ function show_my_social_icons_file_path($type, $size, $style) {
     If the option is set (it is by default), it will add the icons to the main menu of the site.
 */
 function my_social_icons_add_menu_icons($items, $args) {
+    if (get_option('display_in_menu', '1') !== '1') {
+        return $items;
+    }
+
     if ($args->theme_location == get_option('smsi_menu_location', 'primary')) {
         $platforms = my_social_media_platforms();
         $icons = array();
@@ -150,6 +154,10 @@ function my_social_icons_add_menu_icons($items, $args) {
         $icon_style = get_option('icon_style', 'Icon only full color');
         $custom_color = get_option('icon_custom_color', '');
         $icon_spacing = get_option('icon_spacing', '10px');
+        $margin_top = get_option('icon_container_margin_top', '0px');
+        $margin_bottom = get_option('icon_container_margin_bottom', '0px');
+        $margin_left = get_option('icon_container_margin_left', '0px');
+        $margin_right = get_option('icon_container_margin_right', '0px');
 
         foreach ($platforms as $platform => $config) {
             $url = get_option($platform . '_url');
@@ -193,10 +201,10 @@ function my_social_icons_add_menu_icons($items, $args) {
                     $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
                     $icon_url = plugins_url($icon_path_start . strtolower($platform) . $icon_file_name_end, SMSI_PLUGIN_FILE);
                     $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon ' . $hover_effect_class . '" style="margin-right: ' . esc_attr($icon_spacing) . ';"><img src="' . esc_url($icon_url) . '" style="width: ' . esc_attr($icon_size) . '; height: auto;" alt="' . esc_attr($platform) . '"></a>';
-
                 }
 
-                $icons[(int)$order] = $icon_html;
+                // Wrap each icon in an <li> tag
+                $icons[(int)$order] = '<li class="menu-item smsi-social-icon" style="margin-top: ' . esc_attr($margin_top) . '; margin-bottom: ' . esc_attr($margin_bottom) . '; margin-left: ' . esc_attr($margin_left) . '; margin-right: ' . esc_attr($margin_right) . ';">' . $icon_html . '</li>';
             }
         }
 
@@ -228,3 +236,5 @@ function smsi_get_file_contents($file_path) {
     WP_Filesystem();
     return $wp_filesystem->get_contents($file_path);
 }
+
+register_setting('show_my_social_icons', 'smsi_force_load_styles', 'intval');

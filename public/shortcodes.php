@@ -17,15 +17,25 @@ function smsi_add_custom_styles() {
     $icon_type = get_option('icon_type', 'PNG');
     $icon_style = get_option('icon_style', 'Icon only full color');
     $custom_color = get_option('icon_custom_color', '');
+    $icon_spacing = get_option('icon_spacing', '10px');
+    $margin_top = get_option('icon_container_margin_top', '0px');
+    $margin_right = get_option('icon_container_margin_right', '0px');
+    $margin_bottom = get_option('icon_container_margin_bottom', '0px');
+    $margin_left = get_option('icon_container_margin_left', '0px');
 
     $css = "
     .my-social-icons, .my-social-icon-single {
-        text-align: " . strtolower($icon_alignment) . "
+        text-align: " . strtolower($icon_alignment) . ";
+        margin-top: " . $margin_top . ";
+        margin-right: " . $margin_right . ";
+        margin-bottom: " . $margin_bottom . ";
+        margin-left: " . $margin_left . ";
     }
     .my-social-icons img, .my-social-icon-single img,
     .my-social-icons svg, .my-social-icon-single svg {
         width: " . $icon_size .";
         height: auto;
+        margin-right: " . $icon_spacing . ";
     }
     ";
 
@@ -107,9 +117,12 @@ function smsi_show_my_social_icon_shortcode($atts) {
             'margin_right' => get_option('icon_container_margin_right', '0px'),
             'margin_bottom' => get_option('icon_container_margin_bottom', '0px'),
             'margin_left' => get_option('icon_container_margin_left', '0px')
-        ), 
+        ),
         $atts
     );
+
+    $platform = strtolower($atts['platform']);
+    $url = get_option($platform . '_url');
 
     $container_style = "text-align: " . esc_attr(strtolower($atts['alignment'])) . "; " .
                        "margin-top: " . esc_attr($atts['margin_top']) . "; " .

@@ -115,9 +115,17 @@ function smsi_platform_fields_callback() {
     
     $all_platforms = array_merge($set_platforms, $unset_platforms);
     
+    // Add this code above the platform list
+    echo "<div style='text-align: right; margin-bottom: 10px;'>
+    <input type='submit' name='submit' id='submit' class='button button-primary' value='Save Changes'>
+    </div>";
+
+    global $smsi_plugin_dir_path;
     foreach ($all_platforms as $platform) {
+        $icon_url = $smsi_plugin_dir_path . "assets/png/ic-c/100w/{$platform['id']}_icon_100px.png";
         echo "<div class='smsi-platform-fields' data-platform='" . esc_attr($platform['name']) . "' data-id='" . esc_attr($platform['id']) . "'>";
         echo "<span class='smsi-drag-handle dashicons dashicons-move'></span>";
+        echo "<img src='" . esc_url($icon_url) . "' alt='" . esc_attr($platform['name']) . " icon' class='smsi-platform-icon' />";
         echo "<label class='smsi-platform-label'>" . esc_html($platform['name']) . "</label>";
         echo "<input type='url' name='" . esc_attr($platform['id']) . "_url' value='" . esc_attr($platform['url']) . "' class='regular-text smsi-url-field' placeholder='" . esc_attr__('Enter URL', 'show-my-social-icons') . "' />";
         echo "<input type='number' name='" . esc_attr($platform['id']) . "_order' value='" . esc_attr($platform['order']) . "' class='small-text smsi-order-field' readonly />";

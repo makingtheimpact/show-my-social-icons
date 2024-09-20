@@ -102,3 +102,6 @@
     margin-right: 0; /* Remove margin for the last icon */
 }
 
+nav a.smsi-menu-icon {
+    display: inline-block;
+}

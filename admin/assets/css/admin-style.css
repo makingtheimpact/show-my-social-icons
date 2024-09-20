@@ -1,7 +1,4 @@
 /* General Plugin Admin Page Styles */
-#toplevel_page_show_my_social_icons .wp-menu-image img {
-    padding: 0px;
-}
 .smsi-settings-page h2, .smsi-info-page h2, .smsi-icon-preview-page h2 {
     font-weight: bold !important;
 }
@@ -84,6 +81,13 @@
     border: 0.5px solid #777;
 }
 
+.smsi-icon-styles-table {
+    border: 0.5px solid #777;
+}
+.smsi-icon-styles-table td {
+    vertical-align: top;
+}
+
 .smsi-platform-list th {
     text-align: left;
 }
@@ -163,4 +167,17 @@
 .smsi-block-preview {
     font-style: italic;
     color: #686868;
+}
+
+.smsi-platform-icon {
+    width: 20px;
+    height: auto;
+    margin-right: 10px;
+}
+
+.shortcode-preview {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 20px;
+    text-align: center;
 }

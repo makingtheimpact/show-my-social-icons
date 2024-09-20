@@ -3,7 +3,7 @@ Contributors: Making The Impact LLC
 Tags: social media, icons, menu, widget, gutenberg
 Requires at least: 5.0
 Tested up to: 6.6.2
-Stable tag: 1.0.72
+Stable tag: 1.0.73
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -23,6 +23,7 @@ Key Features:
 * Drag-and-drop ordering of icons
 * Search functionality to quickly find platforms
 * Individual icon display option
+* Force load styles option to ensure icons are displayed correctly
 
 Supported Platforms:
 Behance, Bitchute, CashApp, CloutHub, Digg, Discord, Facebook, Fiverr, Gab, GiveSendGo, Instagram, LinkedIn, Linktree, Locals, Minds, MySpace, Odysee, Parler, Patreon, PayPal, Pinterest, Public Square, Quora, Reddit, Rokfin, Rumble, Snapchat, Substack, Telegram, TikTok, Truth Social, Twitch, X (Twitter), Unite, Venmo, Vimeo, VK, WhatsApp, YouTube, Zelle
@@ -51,10 +52,30 @@ Yes, you can customize the size, style, alignment, and colors of the icons throu
 
 SVG icons are scalable without loss of quality, while PNG icons have a fixed resolution. SVG icons are also smaller in file size for simple icons, but not supported by all browsers (especially older ones). PNG icons are supported by all browsers, but may pixelate when enlarged beyond 500px.
 
+= How do I troubleshoot the CSS styles not being loaded? =
+
+If the CSS styles are not being loaded, you can try the following:
+
+1. Check the "Force Load Styles" option in the settings.
+2. Clear the website cache and if necessary, adjust the settings. 
+3. Clear the browser cache.
+
+= How do I troubleshoot the icons not displaying? =
+
+If the icons are not displaying, you can try the following:
+
+1. Ensure the platform URL is set correctly in the settings.
+2. Check the settings for the blocks and widgets to ensure they are set to the correct options.
+3. Try clearing the website and browser cache.
+
+= Who can I contact for support? =
+
+You can contact us at customerservice@makingtheimpact.com. 
+
 == Screenshots ==
 1. Social Icons Settings Page (Platform Settings)
 2. Social Icons Settings Page (Icon Style Settings)
-3. Shortcode Info Page - How to use the shortcodes
+3. Documentation Page - How to use the shortcodes, FAQs, and Troubleshooting
 4. Icon Preview Page - View all available icons
 5. Widget Section Block Settings 
 6. Page Block Settings 
@@ -62,6 +83,11 @@ SVG icons are scalable without loss of quality, while PNG icons have a fixed res
 8. Preview of icons displayed in a widget area.
 
 == Changelog ==
+
+= 1.0.73 =
+* Added shortcode preview feature.
+* Fixed bugs and other issues with settings and displaying the icons.
+* Removed redundant code and cleaned up the codebase.
 
 = 1.0.72 =
 * Added custom color to the icons.

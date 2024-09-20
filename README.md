@@ -65,6 +65,10 @@ The social media platforms currently supported are:
 
 ## Usage
 
+You can use the widgets and blocks anywhere on your website. Simply add the widget to a sidebar or footer, and the blocks to a page.
+
+You can also use the shortcodes to display the icons anywhere on your website. 
+
 ### Shortcodes
 
 - `[show_my_social_icons]`: Displays all configured social media icons
@@ -76,16 +80,33 @@ The plugin provides two Gutenberg blocks and two widgets:
 - Social Media Icons (All) - Displays all configured social media icons
 - Social Media Icons (Single) - Displays a single social media icon
 
-
-
 SVG icons are only available in black, white, or custom color.
 PNG icons are available in full color (proper logo branding color), black, or white. The logos are available in horizontal and square formats.
 
 If you try to use incorrect settings, the icons may not display properly or use default settings.
 
+## Troubleshooting
 
+If you are having trouble with the icons not displaying, please check the following:
+
+1. Ensure the plugin is activated and configured correctly.
+2. Be sure that you have a valid URL for the social media platform in the platform settings.
+3. Check the settings for the blocks and widgets to ensure they are set to the correct options.
+4. Use the preview to ensure the icons are displaying correctly.
+5. Use the shortcode to display a single icon and ensure it is displaying correctly.    
+
+If the CSS styles are not being loaded, you can try the following:
+
+1. Check the "Force Load Styles" option in the settings.
+2. Clear the website cache and if necessary, adjust the settings. 
+3. Clear the browser cache.
 
 ## Changelog
+
+### 1.0.73
+- Added shortcode preview feature.
+- Fixed bugs and other issues with settings and displaying the icons.
+- Removed redundant code and cleaned up the codebase.
 
 ### 1.0.72
 - Added custom color to the icons.
