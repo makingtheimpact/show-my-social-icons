@@ -25,11 +25,13 @@ The social media platforms currently supported are:
 - Facebook
 - Fiverr
 - Gab
+- GitHub
 - GiveSendGo
 - Instagram
 - LinkedIn
 - Linktree
 - Locals
+- Mastodon
 - Minds
 - MySpace
 - Odysee

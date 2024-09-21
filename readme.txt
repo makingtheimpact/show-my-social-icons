@@ -26,7 +26,7 @@ Key Features:
 * Force load styles option to ensure icons are displayed correctly
 
 Supported Platforms:
-Behance, Bitchute, CashApp, CloutHub, Digg, Discord, Facebook, Fiverr, Gab, GiveSendGo, Instagram, LinkedIn, Linktree, Locals, Minds, MySpace, Odysee, Parler, Patreon, PayPal, Pinterest, Public Square, Quora, Reddit, Rokfin, Rumble, Snapchat, Substack, Telegram, TikTok, Truth Social, Twitch, X (Twitter), Unite, Venmo, Vimeo, VK, WhatsApp, YouTube, Zelle
+Behance, Bitchute, CashApp, CloutHub, Digg, Discord, Facebook, Fiverr, Gab, GitHub, GiveSendGo, Instagram, LinkedIn, Linktree, Locals, Mastodon, Minds, MySpace, Odysee, Parler, Patreon, PayPal, Pinterest, Public Square, Quora, Reddit, Rokfin, Rumble, Snapchat, Substack, Telegram, TikTok, Truth Social, Twitch, X (Twitter), Unite, Venmo, Vimeo, VK, WhatsApp, YouTube, Zelle
 
 == Installation ==
 
