@@ -12,8 +12,63 @@ export default function Edit( { attributes, setAttributes } ) {
         marginBottom,
         marginLeft,
         linkMargins,
-        // ... other attributes
     } = attributes;
+
+    const supportedPlatforms = [
+        { id: 'address', name: 'Address' },
+        { id: 'amazon', name: 'Amazon' },
+        { id: 'audible', name: 'Audible' },
+        { id: 'barnesandnoble', name: 'Barnes & Noble' },
+        { id: 'behance', name: 'Behance' },
+        { id: 'bitchute', name: 'Bitchute' },
+        { id: 'bookbub', name: 'BookBub' },
+        { id: 'cashapp', name: 'CashApp' },
+        { id: 'clouthub', name: 'CloutHub' },
+        { id: 'digg', name: 'Digg' },
+        { id: 'discord', name: 'Discord' },
+        { id: 'email', name: 'Email' },
+        { id: 'facebook', name: 'Facebook' },
+        { id: 'fiverr', name: 'Fiverr' },
+        { id: 'gab', name: 'Gab' },
+        { id: 'github', name: 'GitHub' },
+        { id: 'givesendgo', name: 'GiveSendGo' },
+        { id: 'goodreads', name: 'Goodreads' },
+        { id: 'instagram', name: 'Instagram' },
+        { id: 'landlinephone', name: 'Landline Phone' },
+        { id: 'librarything', name: 'LibraryThing' },
+        { id: 'linkedin', name: 'LinkedIn' },
+        { id: 'linktree', name: 'Linktree' },
+        { id: 'locals', name: 'Locals' },
+        { id: 'mastodon', name: 'Mastodon' },
+        { id: 'minds', name: 'Minds' },
+        { id: 'myspace', name: 'MySpace' },
+        { id: 'odysee', name: 'Odysee' },
+        { id: 'parler', name: 'Parler' },
+        { id: 'patreon', name: 'Patreon' },
+        { id: 'paypal', name: 'PayPal' },
+        { id: 'phone', name: 'Phone' },
+        { id: 'pinterest', name: 'Pinterest' },
+        { id: 'publicsq', name: 'Public Square' },
+        { id: 'quora', name: 'Quora' },
+        { id: 'reddit', name: 'Reddit' },
+        { id: 'rokfin', name: 'Rokfin' },
+        { id: 'rumble', name: 'Rumble' },
+        { id: 'snapchat', name: 'Snapchat' },
+        { id: 'substack', name: 'Substack' },
+        { id: 'telegram', name: 'Telegram' },
+        { id: 'tiktok', name: 'TikTok' },
+        { id: 'truth_social', name: 'Truth Social' },
+        { id: 'twitch', name: 'Twitch' },
+        { id: 'twitter_x', name: 'X (formerly Twitter)' },
+        { id: 'unite', name: 'Unite' },
+        { id: 'venmo', name: 'Venmo' },
+        { id: 'vimeo', name: 'Vimeo' },
+        { id: 'vk', name: 'VK' },
+        { id: 'website', name: 'Website' },
+        { id: 'whatsapp', name: 'WhatsApp' },
+        { id: 'youtube', name: 'YouTube' },
+        { id: 'zelle', name: 'Zelle' },
+    ];
 
     const blockProps = useBlockProps();
 
@@ -64,6 +119,7 @@ export default function Edit( { attributes, setAttributes } ) {
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Top', 'show-my-social-icons')}
                             value={marginTop}
                             onChange={(value) => handleMarginChange('marginTop', value)}
@@ -72,6 +128,7 @@ export default function Edit( { attributes, setAttributes } ) {
                             style={{ width: '23%' }}
                         />
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Right', 'show-my-social-icons')}
                             value={marginRight}
                             onChange={(value) => handleMarginChange('marginRight', value)}
@@ -80,6 +137,7 @@ export default function Edit( { attributes, setAttributes } ) {
                             style={{ width: '23%' }}
                         />
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Bottom', 'show-my-social-icons')}
                             value={marginBottom}
                             onChange={(value) => handleMarginChange('marginBottom', value)}
@@ -88,6 +146,7 @@ export default function Edit( { attributes, setAttributes } ) {
                             style={{ width: '23%' }}
                         />
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Left', 'show-my-social-icons')}
                             value={marginLeft}
                             onChange={(value) => handleMarginChange('marginLeft', value)}
@@ -132,7 +191,7 @@ getCurrentUser();
 // Register the "All Icons" block
 registerBlockType('show-my-social-icons/all-icons', {
     apiVersion: 2,
-    title: __('Social Media Icons (All)', 'show-my-social-icons'),
+    title: __('(All Icons) Show My Social Icons', 'show-my-social-icons'),
     attributes: {
         iconType: {
             type: 'string',
@@ -191,6 +250,7 @@ registerBlockType('show-my-social-icons/all-icons', {
                 <InspectorControls>
                     <PanelBody title={__('Icon Settings', 'show-my-social-icons')}>
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Type', 'show-my-social-icons')}
                             value={iconType}
                             options={[
@@ -200,6 +260,7 @@ registerBlockType('show-my-social-icons/all-icons', {
                             onChange={(newIconType) => setAttributes({ iconType: newIconType })}
                         />
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Style', 'show-my-social-icons')}
                             value={iconStyle}
                             options={
@@ -227,11 +288,13 @@ registerBlockType('show-my-social-icons/all-icons', {
                             />
                         )}
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Size', 'show-my-social-icons')}
                             value={iconSize}
                             onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Alignment', 'show-my-social-icons')}
                             value={iconAlignment}
                             options={[
@@ -242,6 +305,7 @@ registerBlockType('show-my-social-icons/all-icons', {
                             onChange={(newIconAlignment) => setAttributes({ iconAlignment: newIconAlignment })}
                         />
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Spacing', 'show-my-social-icons')}
                             value={spacing}
                             onChange={(newSpacing) => setAttributes({ spacing: newSpacing })}
@@ -249,12 +313,14 @@ registerBlockType('show-my-social-icons/all-icons', {
                         <PanelBody title={__('Container Margins', 'show-my-social-icons')} initialOpen={false}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Top', 'show-my-social-icons')}
                                     value={marginTop}
                                     onChange={(newMarginTop) => setAttributes({ marginTop: newMarginTop })}
                                     style={{ width: '48%' }}
                                 />
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Bottom', 'show-my-social-icons')}
                                     value={marginBottom}
                                     onChange={(newMarginBottom) => setAttributes({ marginBottom: newMarginBottom })}
@@ -263,12 +329,14 @@ registerBlockType('show-my-social-icons/all-icons', {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Left', 'show-my-social-icons')}
                                     value={marginLeft}
                                     onChange={(newMarginLeft) => setAttributes({ marginLeft: newMarginLeft })}
                                     style={{ width: '48%' }}
                                 />
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Right', 'show-my-social-icons')}
                                     value={marginRight}
                                     onChange={(newMarginRight) => setAttributes({ marginRight: newMarginRight })}
@@ -310,7 +378,7 @@ registerBlockType('show-my-social-icons/all-icons', {
 // Register the "Single Icon" block
 registerBlockType('show-my-social-icons/single-icon', {
     apiVersion: 2,
-    title: __('Social Media Icon (Single)', 'show-my-social-icons'),
+    title: __('(Single Icon) Show My Social Icons', 'show-my-social-icons'),
     attributes: {
         platform: {
             type: 'string',
@@ -364,26 +432,35 @@ registerBlockType('show-my-social-icons/single-icon', {
         const { platform, iconType, iconSize, iconStyle, iconAlignment, customColor, marginTop, marginRight, marginBottom, marginLeft, linkMargins } = attributes;
         const blockProps = useBlockProps();
         const [platforms, setPlatforms] = useState([]);
+        const supportedPlatforms = smsiData.supportedPlatforms;
 
-        useEffect(() => {
+        const fetchPlatforms = (retry = false) => {
             apiFetch({ path: '/smsi/v1/platforms' })
                 .then((fetchedPlatforms) => {
-                    //console.log('Fetched platforms:', fetchedPlatforms);
                     if (typeof fetchedPlatforms === 'object' && fetchedPlatforms !== null) {
                         const platformArray = Object.entries(fetchedPlatforms).map(([id, data]) => ({
                             id,
-                            name: data.name || id
+                            name: data.name || id,
                         }));
                         setPlatforms(platformArray);
                     } else {
                         console.error('Unexpected data format:', fetchedPlatforms);
-                        setPlatforms([]);
+                        setPlatforms(supportedPlatforms); // Fallback on unexpected format
                     }
                 })
                 .catch((error) => {
-                    console.error('Error fetching platforms:', error);
-                    setPlatforms([]);
+                    console.error('Error fetching platforms:', error.message);
+                    if (!retry) {
+                        console.log('Retrying...');
+                        setTimeout(() => fetchPlatforms(true), 3000); // Retry after 3 seconds
+                    } else {
+                        setPlatforms(supportedPlatforms); // Fallback on persistent error
+                    }
                 });
+        };
+        
+        useEffect(() => {
+            fetchPlatforms();
         }, []);
 
         return (
@@ -391,15 +468,21 @@ registerBlockType('show-my-social-icons/single-icon', {
                 <InspectorControls>
                     <PanelBody title={__('Single Icon Settings', 'show-my-social-icons')}>
                         <SelectControl
+                            __nextHasNoMarginBottom={true}
                             label={__('Platform', 'show-my-social-icons')}
                             value={platform}
-                            options={platforms.length ? platforms.map(platform => ({
-                                label: platform.name,
-                                value: platform.id
-                            })) : [{ label: 'Loading...', value: '' }]}
+                            options={
+                                platforms.length > 0
+                                    ? platforms.map((platform) => ({
+                                        label: platform.name,
+                                        value: platform.id,
+                                    }))
+                                    : [{ label: __('No platforms available', 'show-my-social-icons'), value: '' }]
+                            }
                             onChange={(newPlatform) => setAttributes({ platform: newPlatform })}
                         />
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Type', 'show-my-social-icons')}
                             value={iconType}
                             options={[
@@ -409,6 +492,7 @@ registerBlockType('show-my-social-icons/single-icon', {
                             onChange={(newIconType) => setAttributes({ iconType: newIconType })}
                         />
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Style', 'show-my-social-icons')}
                             value={iconStyle}
                             options={
@@ -436,11 +520,13 @@ registerBlockType('show-my-social-icons/single-icon', {
                             />
                         )}
                         <TextControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Size', 'show-my-social-icons')}
                             value={iconSize}
                             onChange={(newIconSize) => setAttributes({ iconSize: newIconSize })}
                         />
                         <SelectControl
+                            __nextHasNoMarginBottom={ true }
                             label={__('Icon Alignment', 'show-my-social-icons')}
                             value={iconAlignment}
                             options={[
@@ -453,12 +539,14 @@ registerBlockType('show-my-social-icons/single-icon', {
                         <PanelBody title={__('Container Margins', 'show-my-social-icons')} initialOpen={false}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Top', 'show-my-social-icons')}
                                     value={marginTop}
                                     onChange={(newMarginTop) => setAttributes({ marginTop: newMarginTop })}
                                     style={{ width: '48%' }}
                                 />
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Bottom', 'show-my-social-icons')}
                                     value={marginBottom}
                                     onChange={(newMarginBottom) => setAttributes({ marginBottom: newMarginBottom })}
@@ -467,12 +555,14 @@ registerBlockType('show-my-social-icons/single-icon', {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Left', 'show-my-social-icons')}
                                     value={marginLeft}
                                     onChange={(newMarginLeft) => setAttributes({ marginLeft: newMarginLeft })}
                                     style={{ width: '48%' }}
                                 />
                                 <TextControl
+                                    __nextHasNoMarginBottom={ true }
                                     label={__('Right', 'show-my-social-icons')}
                                     value={marginRight}
                                     onChange={(newMarginRight) => setAttributes({ marginRight: newMarginRight })}

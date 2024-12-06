@@ -21,6 +21,7 @@
  /* To Do:
  - Make it so people can create their own custom icons and upload their own icons to the plugin.
  - Add a new shortcode, block, and widget for displaying one or more icons they select in a group instead of all the icons or make it so they can turn off the group display and just display the icons they select in a group.
+ - Add Flickr, foursquare and any other platforms that are missing.
  */
 
 // Prevent direct access.
@@ -206,8 +207,19 @@ function smsi_register_rest_route() {
 }
 add_action('rest_api_init', 'smsi_register_rest_route');
 
+/**
+ * Get the list of platforms that have a URL set.
+ *
+ * @return array List of platforms with a URL set.
+ */
 function smsi_get_platforms() {
-    return my_social_media_platforms();
+    $platforms = smsi_get_platform_list();
+    // return list of platforms that have a URL set
+    $platforms_with_url = array_filter($platforms, function($platform) {
+        $platform_url = get_option($platform['platform_id'] . '_url', '');
+        return !empty($platform_url);
+    });
+    return $platforms_with_url;
 }
 
 /**

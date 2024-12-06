@@ -1,6 +1,10 @@
 <?php
 // includes/social-platforms-config.php
 
+/* 
+    Note: When updating this file, be sure to update the supportedPlatforms array in the src/index.js file.
+*/
+
 $social_platforms = [
     'address' => [
         'platform_id'    => 'address',
@@ -268,6 +272,7 @@ $social_platforms = [
         'default_order' => 53,
     ],
 ];
+
 
 // Social Media Platforms and Icons
 function smsi_get_platform_list() {
