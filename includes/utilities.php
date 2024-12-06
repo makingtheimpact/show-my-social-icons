@@ -62,7 +62,60 @@ function smsi_sanitize_display_in_menu($input) {
     return $input === '1' ? '1' : '0';
 }
 
+/**
+ * Helper function to split a CSS value into numeric and unit parts.
+ *
+ * @param string $value The CSS value (e.g., '2em').
+ * @return array An array with 'value' and 'unit'.
+ */
+function smsi_split_css_value($value) {
+    if (preg_match('/^(\d*\.?\d+)(px|em|rem|%|vh|vw)$/', $value, $matches)) {
+        return [
+            'value' => floatval($matches[1]),
+            'unit' => $matches[2],
+        ];
+    }
+    // Default fallback
+    return [
+        'value' => 0,
+        'unit' => 'px',
+    ];
+}
+
+/**
+ * Sanitizes unit value (px, em, rem, %, vh, vw)
+ *
+ * @param string $value The value to sanitize.
+ * @return string Sanitized value.
+ */
+function smsi_sanitize_unit_value($value) {
+    if (!empty($value)) {        
+        $value = trim($value);
+        if (is_numeric($value)) {
+            return $value . 'px';
+        }
+        if (preg_match('/^(\d*\.?\d+)(px|em|rem|%|vh|vw)$/', $value, $matches)) { // Check if the value is a number followed by a unit
+            return $value;
+        }
+    }
+    return '0px';
+}
+
 // Helper Functions
+/**
+ * Helper function to generate field IDs.
+ *
+ * @param string $field_name The name of the field.
+ * @param string $widget_id  The ID of the widget (if applicable).
+ * @return string The generated field ID.
+ */
+function smsi_get_field_id($field_name, $widget_id = '') {
+    if ($widget_id) {
+        return 'widget-' . esc_attr($widget_id) . '-' . esc_attr($field_name);
+    }
+    return 'smsi-' . esc_attr($field_name);
+}
+
 function show_my_social_icons_get_social_urls() {
     $urls = [];
     global $social_platforms;
@@ -138,83 +191,16 @@ function show_my_social_icons_file_path($type, $size, $style) {
     return [$icon_path_start, $icon_file_name_end];
 }
 
-/* Add the social media links to the main menu 
-    If the option is set (it is by default), it will add the icons to the main menu of the site.
-*/
-function my_social_icons_add_menu_icons($items, $args) {
-    if (get_option('display_in_menu', '1') !== '1') {
-        return $items;
-    }
+/* Function to assemble full icon path with platform ID */
+function smsi_get_single_social_icon_path($platform_id, $icon_type, $icon_size, $icon_style) {
+    list($icon_path_start, $icon_file_name_end) = show_my_social_icons_file_path($icon_type, $icon_size, $icon_style); 
 
-    if ($args->theme_location == get_option('smsi_menu_location', 'primary')) {
-        $platforms = my_social_media_platforms();
-        $icons = array();
-        $icon_type = get_option('icon_type', 'PNG');
-        $icon_size = get_option('icon_size', '30px');
-        $icon_style = get_option('icon_style', 'Icon only full color');
-        $custom_color = get_option('icon_custom_color', '');
-        $icon_spacing = get_option('icon_spacing', '10px');
-        $margin_top = get_option('icon_container_margin_top', '0px');
-        $margin_bottom = get_option('icon_container_margin_bottom', '0px');
-        $margin_left = get_option('icon_container_margin_left', '0px');
-        $margin_right = get_option('icon_container_margin_right', '0px');
-
-        foreach ($platforms as $platform => $config) {
-            $url = get_option($platform . '_url');
-            $order = get_option($platform . '_order', 0);
-            if ($url) {
-                list($icon_path_start, $icon_file_name_end) = show_my_social_icons_file_path($icon_type, $icon_size, $icon_style);
-                $icon_path = SMSI_PLUGIN_DIR . $icon_path_start . strtolower($platform) . $icon_file_name_end;
-
-                if ($icon_type === 'SVG') {
-                    $svg_content = smsi_get_file_contents($icon_path);
-
-                    // Generate a unique ID for this SVG
-                    $unique_id = 'smsi-' . $platform . '-' . uniqid();
-
-                    // Determine the fill color
-                    $svg_fill = '#000000';
-                    if ($icon_style === 'Icon only custom color' && !empty($custom_color)) {
-                        $svg_fill = $custom_color;
-                    } elseif ($icon_style === 'Icon only white') {
-                        $svg_fill = '#FFFFFF';
-                    } elseif ($icon_style === 'Icon only black') {
-                        $svg_fill = '#000000';
-                    }
-
-                    // Remove the existing style tag
-                    $svg_content = preg_replace('/<style>.*?<\/style>/s', '', $svg_content);
-
-                    // Add a new style tag with scoped styles
-                    $svg_content = preg_replace('/<svg /', '<svg style="width: ' . esc_attr($icon_size) . '; height: auto;" ', $svg_content);
-                    $svg_content = str_replace('<defs>', '<defs><style>.' . $unique_id . ' .cls-1 { fill: ' . esc_attr($svg_fill) . '; }</style>', $svg_content);
-
-                    // Update class names to be unique
-                    $svg_content = preg_replace('/class="cls-([0-9]+)"/', 'class="' . $unique_id . ' cls-$1"', $svg_content);
-
-                    // Get the hover effect class
-                    $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
-
-                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="' . $unique_id . ' smsi-menu-icon ' . $hover_effect_class . '" style="margin-right: ' . esc_attr($icon_spacing) . '; width: ' . esc_attr($icon_size) . '; height: auto;">' . $svg_content . '</a>';
-                } else {
-                    // Get the hover effect class
-                    $hover_effect_class = 'smsi-icon-hover-' . get_option('icon_hover_effect', 'style1');
-                    $icon_url = plugins_url($icon_path_start . strtolower($platform) . $icon_file_name_end, SMSI_PLUGIN_FILE);
-                    $icon_html = '<a href="' . esc_url($url) . '" target="_blank" class="smsi-menu-icon ' . $hover_effect_class . '" style="margin-right: ' . esc_attr($icon_spacing) . ';"><img src="' . esc_url($icon_url) . '" style="width: ' . esc_attr($icon_size) . '; height: auto;" alt="' . esc_attr($platform) . '"></a>';
-                }
-
-                // Wrap each icon in an <li> tag
-                $icons[(int)$order] = '<li class="menu-item smsi-social-icon" style="margin-top: ' . esc_attr($margin_top) . '; margin-bottom: ' . esc_attr($margin_bottom) . '; margin-left: ' . esc_attr($margin_left) . '; margin-right: ' . esc_attr($margin_right) . ';">' . $icon_html . '</li>';
-            }
-        }
-
-        ksort($icons);
-        $items .= implode('', $icons);
-    }
-
-    return $items;
+    // Get the plugin URL
+    $plugin_url = plugin_dir_url(dirname(__FILE__, 2)) . '/show-my-social-icons/'; 
+    
+    $icon_path = $plugin_url . $icon_path_start . strtolower($platform_id) . $icon_file_name_end;
+    return $icon_path;
 }
-add_filter('wp_nav_menu_items', 'my_social_icons_add_menu_icons', 10, 2);
 
 function smsi_render_social_icons_block($attributes) {
     $icon_type = isset($attributes['iconType']) ? $attributes['iconType'] : 'PNG';

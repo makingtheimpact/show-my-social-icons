@@ -5,8 +5,133 @@ import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 
+export default function Edit( { attributes, setAttributes } ) {
+    const {
+        marginTop,
+        marginRight,
+        marginBottom,
+        marginLeft,
+        linkMargins,
+        // ... other attributes
+    } = attributes;
+
+    const blockProps = useBlockProps();
+
+    useEffect(() => {
+        if (linkMargins) {
+            const uniformMargin = marginTop || marginRight || marginBottom || marginLeft || '0px';
+            setAttributes({
+                marginTop: uniformMargin,
+                marginRight: uniformMargin,
+                marginBottom: uniformMargin,
+                marginLeft: uniformMargin,
+            });
+        }
+    }, [linkMargins]);
+
+    const handleMarginChange = (side, value) => {
+        if (linkMargins) {
+            setAttributes({
+                marginTop: value,
+                marginRight: value,
+                marginBottom: value,
+                marginLeft: value,
+            });
+        } else {
+            setAttributes({ [side]: value });
+        }
+    };
+
+    return (
+        <Fragment>
+            <InspectorControls>
+                <PanelBody title={ __('Margin Settings', 'show-my-social-icons') }>
+                    <ToggleControl
+                        label={__('Link Margins', 'show-my-social-icons')}
+                        checked={linkMargins}
+                        onChange={(newLinkMargins) => {
+                            setAttributes({ linkMargins: newLinkMargins });
+                            if (newLinkMargins) {
+                                const uniformMargin = marginTop || marginRight || marginBottom || marginLeft || '0px';
+                                setAttributes({
+                                    marginTop: uniformMargin,
+                                    marginRight: uniformMargin,
+                                    marginBottom: uniformMargin,
+                                    marginLeft: uniformMargin,
+                                });
+                            }
+                        }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                        <TextControl
+                            label={__('Top', 'show-my-social-icons')}
+                            value={marginTop}
+                            onChange={(value) => handleMarginChange('marginTop', value)}
+                            disabled={linkMargins}
+                            placeholder="0px"
+                            style={{ width: '23%' }}
+                        />
+                        <TextControl
+                            label={__('Right', 'show-my-social-icons')}
+                            value={marginRight}
+                            onChange={(value) => handleMarginChange('marginRight', value)}
+                            disabled={linkMargins}
+                            placeholder="0px"
+                            style={{ width: '23%' }}
+                        />
+                        <TextControl
+                            label={__('Bottom', 'show-my-social-icons')}
+                            value={marginBottom}
+                            onChange={(value) => handleMarginChange('marginBottom', value)}
+                            disabled={linkMargins}
+                            placeholder="0px"
+                            style={{ width: '23%' }}
+                        />
+                        <TextControl
+                            label={__('Left', 'show-my-social-icons')}
+                            value={marginLeft}
+                            onChange={(value) => handleMarginChange('marginLeft', value)}
+                            disabled={linkMargins}
+                            placeholder="0px"
+                            style={{ width: '23%' }}
+                        />
+                    </div>
+                </PanelBody>
+            </InspectorControls>
+            <div { ...blockProps }>
+                {/* Block content preview */}
+                <p>{__('Social Media Icon (Single) will appear here', 'show-my-social-icons')}</p>
+            </div>
+        </Fragment>
+    );
+}
+
+// Example function to get current user
+const getCurrentUser = () => {
+    apiFetch({
+        path: '/wp/v2/users/me',
+        method: 'GET',
+        headers: {
+            'X-WP-Nonce': smsiData.nonce, // Use the localized nonce
+        },
+    })
+    .then((user) => {
+        // Handle user data as needed
+        return user;
+    })
+    .catch((error) => {
+        console.error('Error fetching user:', error);
+        // Handle errors as needed
+        return null;
+    });
+};
+
+// Call the function as needed, for example, when the block initializes
+getCurrentUser();
+
 // Register the "All Icons" block
 registerBlockType('show-my-social-icons/all-icons', {
+    apiVersion: 2,
     title: __('Social Media Icons (All)', 'show-my-social-icons'),
     attributes: {
         iconType: {
@@ -179,16 +304,17 @@ registerBlockType('show-my-social-icons/all-icons', {
     // No save function because this is a dynamic block
     save: function() {
         return null;
-    }
+    },
 });
 
 // Register the "Single Icon" block
 registerBlockType('show-my-social-icons/single-icon', {
+    apiVersion: 2,
     title: __('Social Media Icon (Single)', 'show-my-social-icons'),
     attributes: {
         platform: {
             type: 'string',
-            default: 'Facebook',
+            default: '',
         },
         iconType: {
             type: 'string',
@@ -242,7 +368,7 @@ registerBlockType('show-my-social-icons/single-icon', {
         useEffect(() => {
             apiFetch({ path: '/smsi/v1/platforms' })
                 .then((fetchedPlatforms) => {
-                    console.log('Fetched platforms:', fetchedPlatforms);
+                    //console.log('Fetched platforms:', fetchedPlatforms);
                     if (typeof fetchedPlatforms === 'object' && fetchedPlatforms !== null) {
                         const platformArray = Object.entries(fetchedPlatforms).map(([id, data]) => ({
                             id,

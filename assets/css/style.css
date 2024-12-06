@@ -1,18 +1,18 @@
-.my-social-icons {
+.smsi-icons-wrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: center; /* Default center alignment */
 }
 
-.my-social-icons[style*="text-align: left"] {
+.smsi-icons-wrapper[style*="text-align: left"] {
     justify-content: flex-start;
 }
 
-.my-social-icons[style*="text-align: center"] {
+.smsi-icons-wrapper[style*="text-align: center"] {
     justify-content: center;
 }
 
-.my-social-icons[style*="text-align: right"] {
+.smsi-icons-wrapper[style*="text-align: right"] {
     justify-content: flex-end;
 }
 
@@ -32,16 +32,16 @@
     text-align: right;
 }
 
-.my-social-icons img {
+.smsi-icons-wrapper img {
     max-width: 100%; /* Ensures icons scale within their containers */
     height: auto;
 }
 
-.my-social-icons a:hover, .show-my-social-icons-single a:hover {
+.smsi-icons-wrapper a:hover, .show-my-social-icons-single a:hover {
     opacity: 0.8;
 }
 
-.wp-block-show-my-social-icons-all-icons {
+.wp-block-show-my-social-icons-single {
     margin: 20px 0;
 }
 
@@ -102,6 +102,41 @@
     margin-right: 0; /* Remove margin for the last icon */
 }
 
+/* Menu Icons */
 nav a.smsi-menu-icon {
     display: inline-block;
+}
+
+.smsi-menu-social-icons {
+    display: flex;
+    align-items: center;
+}
+
+.smsi-menu-social-icons a {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.smsi-menu-social-icons img {
+    vertical-align: middle;
+}
+
+.smsi-icon:hover.smsi-icon-hover-style1 {
+    transform: scale(1.2);
+    transition: transform 0.3s;
+}
+
+.smsi-icon:hover.smsi-icon-hover-style2 {
+    filter: brightness(0.8);
+    transition: filter 0.3s;
+}
+
+.smsi-icon:hover.smsi-icon-hover-style3 {
+    transform: rotate(15deg);
+    transition: transform 0.3s;
+}
+
+.smsi-menu-social-icons > a {
+    padding-left: 0;
+    padding-right: 0;
 }

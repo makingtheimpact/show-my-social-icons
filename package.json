@@ -1,8 +1,8 @@
 {
   "name": "show-my-social-icons",
-  "version": "1.0.72",
-  "description": "This plugin makes it easy to display social media icons anywhere on your website.",
-  "main": "index.js",
+  "version": "1.0.74",
+  "description": "Display customizable social media icons on your WordPress site.",
+  "main": "show-my-social-icons.php",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start"
@@ -12,8 +12,8 @@
     "url": "git+https://github.com/makingtheimpact/show-my-social-icons.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Making The Impact LLC",
+  "license": "GPL-2.0-or-later",
   "bugs": {
     "url": "https://github.com/makingtheimpact/show-my-social-icons/issues"
   },

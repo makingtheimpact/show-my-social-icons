@@ -2,7 +2,9 @@
     'use strict';
     
     $(document).ready(function() {
-        console.log('admin-script.js: Document ready.');
+
+        // Initialize color picker
+        $('.smsi-color-picker').wpColorPicker();
 
         var $container = $('#smsi-platform-container');
 
@@ -12,6 +14,31 @@
             update: function(event, ui) {
                 $container.find('.smsi-platform-fields').each(function(index) {
                     $(this).find('.smsi-order-field').val(index + 1);
+                });
+
+                // Save the new order via AJAX
+                var order = [];
+                $container.find('.smsi-platform-fields').each(function() {
+                    var platformId = $(this).data('id');
+                    order.push(platformId);
+                });
+
+                $.ajax({
+                    url: smsiData.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'smsi_save_platform_order',
+                        order: order,
+                        nonce: smsiData.nonce
+                    },
+                    success: function(response) {
+                        if(!response.success){
+                            alert('Failed to save platform order.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error saving platform order:', error);
+                    }
                 });
             }
         });
@@ -42,7 +69,7 @@
                 $iconStyle.find('option[value="Icon only full color"]').prop('disabled', true);
                 $iconStyle.find('option[value="Full logo horizontal"]').prop('disabled', true);
                 $iconStyle.find('option[value="Full logo square"]').prop('disabled', true);
-                if (currentValue === 'Icon only full color' || currentValue === 'Full logo horizontal' || currentValue === 'Full logo square') {
+                if (['Icon only full color', 'Full logo horizontal', 'Full logo square'].includes(currentValue)) {
                     $iconStyle.val('Icon only black');
                 }
             } else {
@@ -50,6 +77,35 @@
                 if (currentValue === 'Icon only custom color') {
                     $iconStyle.val('Icon only full color');
                 }
+            }
+        }
+
+        // Function to update custom color visibility for blocks
+        function updateCustomColorVisibility($iconTypeSelect, $iconStyleSelect, $customColorInput) {
+            var iconType = $iconTypeSelect.val();
+            var iconStyle = $iconStyleSelect.val();
+        
+            if (iconType === 'PNG') {
+                $iconStyleSelect.find('option[value="Icon only custom color"]').prop('disabled', true);
+                if (iconStyle === 'Icon only custom color') {
+                    $iconStyleSelect.val('Icon only full color');
+                }
+            } else {
+                $iconStyleSelect.find('option[value="Icon only custom color"]').prop('disabled', false);
+            }
+        
+            var shouldEnable = (iconType === 'SVG' && iconStyle === 'Icon only custom color');
+            if (shouldEnable) {
+                $customColorInput.wpColorPicker('enable');
+                $customColorInput.prop('disabled', false);
+            } else {
+                $customColorInput.wpColorPicker('disable');
+                $customColorInput.prop('disabled', true);
+            }
+            
+            // Reinitialize color picker if enabled (only for blocks)
+            if (shouldEnable && !$customColorInput.hasClass('wp-picker-active')) {
+                $customColorInput.wpColorPicker();
             }
         }
 
@@ -78,17 +134,21 @@
                 $margins.off('input.linked');
             } else {
                 $button.addClass('linked').text('Unlink Margins');
-                var maxMargin = Math.max(...$margins.map(function() { return parseInt($(this).val()) || 0; }));
-                $margins.val(maxMargin);
+                var maxMargin = Math.max(...$margins.map(function() { return parseFloat($(this).val()) || 0; }).get());
+                var unit = $margins.first().val().replace(/[\d.]/g, '') || 'px';
+                $margins.val(maxMargin + unit);
                 
                 $margins.on('input.linked', function() {
                     var newValue = $(this).val();
-                    $margins.val(newValue);
+                    var numericValue = parseFloat(newValue) || 0;
+                    var unit = newValue.replace(/[\d.]/g, '') || 'px';
+                    var updatedValue = numericValue + unit;
+                    $margins.val(updatedValue);
                 });
             }
         });
 
-        // Widget Block Settings - Update the icon style options
+        // Widget Block Settings - Update the icon style options (without color picker)
         $('.widget-content').each(function() {
             var $widget = $(this);
             var widgetId = $widget.find('.widget-id').val();
@@ -96,39 +156,54 @@
             var $iconTypeSelect = $widget.find('#widget-' + widgetId + '-icon_type');
             var $iconStyleSelect = $widget.find('#widget-' + widgetId + '-icon_style');
             var $customColorInput = $widget.find('#widget-' + widgetId + '-custom_color');
-    
-            function updateCustomColorVisibility() {
-                var iconType = $iconTypeSelect.val();
-                var iconStyle = $iconStyleSelect.val();
-                
-                if (iconType === 'PNG') {
-                    $iconStyleSelect.find('option[value="Icon only custom color"]').prop('disabled', true);
-                    if (iconStyle === 'Icon only custom color') {
-                        $iconStyleSelect.val('Icon only full color');
-                    }
-                } else {
-                    $iconStyleSelect.find('option[value="Icon only custom color"]').prop('disabled', false);
+
+            // Make custom color field editable and remove color picker functionality
+            if ($customColorInput.length) {
+                // Remove color picker if it was previously initialized
+                if ($customColorInput.hasClass('wp-picker-input')) {
+                    $customColorInput.wpColorPicker('destroy');
                 }
-                
-                $customColorInput.prop('disabled', iconType === 'PNG' || iconStyle !== 'Icon only custom color');
+                // Enable the input field
+                $customColorInput.prop('disabled', false);
+                // Remove the color picker class to prevent reinitialization
+                $customColorInput.removeClass('smsi-color-picker');
             }
+
+            // Update icon style options without affecting color picker
+            $iconTypeSelect.change(function() {
+                updateIconStyleOptions($(this).closest('form'));
+            });
+            $iconStyleSelect.change(function() {
+                updateIconStyleOptions($(this).closest('form'));
+            });
             
-            $iconTypeSelect.change(updateCustomColorVisibility);
-            $iconStyleSelect.change(updateCustomColorVisibility);
-            
-            updateCustomColorVisibility();
-    
+            updateIconStyleOptions($iconTypeSelect.closest('form'));
+
             $widget.find('#widget-' + widgetId + '-link_margins').click(function() {
                 var $topMargin = $widget.find('#widget-' + widgetId + '-margin_top');
                 var $rightMargin = $widget.find('#widget-' + widgetId + '-margin_right');
                 var $bottomMargin = $widget.find('#widget-' + widgetId + '-margin_bottom');
                 var $leftMargin = $widget.find('#widget-' + widgetId + '-margin_left');
-    
+
                 $rightMargin.val($topMargin.val());
                 $bottomMargin.val($topMargin.val());
                 $leftMargin.val($topMargin.val());
             });
         }); 
+
+        // Initialize color picker
+        $('.smsi-color-picker').wpColorPicker();
+
+        // Enable/disable custom color based on icon type
+        $('select[id$="icon_type"]').on('change', function() {
+            var iconType = $(this).val();
+            var customColorInput = $(this).closest('form').find('.smsi-color-picker');
+            if (iconType === 'SVG') {
+                customColorInput.prop('disabled', false);
+            } else {
+                customColorInput.prop('disabled', true);
+            }
+        }).trigger('change');
 
         // Copy to clipboard button
         $('.copy-button').on('click', function() {
@@ -197,7 +272,47 @@
                     console.error('Show My Social Icon Error: ajax call failed: ', error);
                 }
             });
-        }
+        }        
+
+        // Handle All Icons Widget
+        $('.widget-content').each(function() {
+            var $widget = $(this);
+            var widgetId = $widget.find('.widget-id').val();
+            
+            var $iconTypeSelect = $widget.find('#widget-' + widgetId + '-icon_type');
+            var $iconStyleSelect = $widget.find('#widget-' + widgetId + '-icon_style');
+            var $customColorInput = $widget.find('#widget-' + widgetId + '-custom_color');
+
+            // Update visibility on change
+            $iconTypeSelect.on('change', function() {
+                updateCustomColorVisibility($iconTypeSelect, $iconStyleSelect, $customColorInput);
+            });
+
+            $iconStyleSelect.on('change', function() {
+                updateCustomColorVisibility($iconTypeSelect, $iconStyleSelect, $customColorInput);
+            });
+
+            // Initial update
+            updateCustomColorVisibility($iconTypeSelect, $iconStyleSelect, $customColorInput);
+        });
+
+        // Handle Short Icon Widget
+        $('select[id$="icon_type"]').on('change', function() {
+            var iconType = $(this).val();
+            var $iconStyleSelect = $(this).closest('form').find('select[id$="icon_style"]');
+            var $customColorInput = $(this).closest('form').find('.smsi-color-picker');
+            updateCustomColorVisibility($(this), $iconStyleSelect, $customColorInput);
+        });
+
+        $('select[id$="icon_style"]').on('change', function() {
+            var iconStyle = $(this).val();
+            var $iconTypeSelect = $(this).closest('form').find('select[id$="icon_type"]');
+            var $customColorInput = $(this).closest('form').find('.smsi-color-picker');
+            updateCustomColorVisibility($iconTypeSelect, $(this), $customColorInput);
+        });
+
+        // Initial trigger
+        $('select[id$="icon_type"], select[id$="icon_style"]').trigger('change');
     });
 
 })(jQuery);

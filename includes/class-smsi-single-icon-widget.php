@@ -11,25 +11,45 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
     public function __construct() {
         parent::__construct(
             'smsi_single_icon_widget',
-            esc_html__('Social Media Icon (Single)', 'show-my-social-icons'),
-            array('description' => esc_html__('Display a single social media icon', 'show-my-social-icons'))
+            '(Single Icon) Show My Social Icon',
+            array('description' => 'Display a single social media icon'),
+            array('customize_selective_refresh' => true)
         );
     }
 
+    /**
+     * Render the widget output on the frontend.
+     *
+     * @param array $args Widget arguments.
+     * @param array $instance Widget settings.
+     */
     public function widget($args, $instance) {
-        echo wp_kses_post($args['before_widget']);
-        $margin_top = isset($instance['margin_top']) ? intval($instance['margin_top']) : 0;
-        $margin_right = isset($instance['margin_right']) ? intval($instance['margin_right']) : 0;
-        $margin_bottom = isset($instance['margin_bottom']) ? intval($instance['margin_bottom']) : 0;
-        $margin_left = isset($instance['margin_left']) ? intval($instance['margin_left']) : 0;
+        echo $args['before_widget'];
+
+        $platform = isset($instance['platform']) ? esc_attr($instance['platform']) : '';
+        
+        // Extract and sanitize variables
+        $icon_type = isset($instance['icon_type']) ? esc_attr($instance['icon_type']) : 'PNG';
+        $icon_alignment = isset($instance['icon_alignment']) ? esc_attr($instance['icon_alignment']) : 'Center';
+        $custom_color = isset($instance['custom_color']) ? esc_attr($instance['custom_color']) : '#000000';
+        $icon_size = isset($instance['icon_size']) ? smsi_sanitize_unit_value($instance['icon_size']) : '30px';
+        $icon_style = isset($instance['icon_style']) ? esc_attr($instance['icon_style']) : 'Icon only full color';
+        
+        // Split margin values into value and unit
+        $margin_top = isset($instance['margin_top']) ? smsi_sanitize_unit_value($instance['margin_top']) : '0px';
+        $margin_right = isset($instance['margin_right']) ? smsi_sanitize_unit_value($instance['margin_right']) : '0px';
+        $margin_bottom = isset($instance['margin_bottom']) ? smsi_sanitize_unit_value($instance['margin_bottom']) : '0px';
+        $margin_left = isset($instance['margin_left']) ? smsi_sanitize_unit_value($instance['margin_left']) : '0px';
+
+
         echo do_shortcode(sprintf(
-            '[my_social_icon platform="%s" type="%s" size="%s" style="%s" alignment="%s" custom_color="%s" margin_top="%dpx" margin_right="%dpx" margin_bottom="%dpx" margin_left="%dpx"]',
-            esc_attr($instance['platform']),
-            esc_attr($instance['icon_type']),
-            esc_attr($instance['icon_size']),
-            esc_attr($instance['icon_style']),
-            esc_attr($instance['icon_alignment']),
-            esc_attr($instance['custom_color']),
+            '[my_social_icon platform="%s" type="%s" size="%s" style="%s" alignment="%s" custom_color="%s" margin_top="%s" margin_right="%s" margin_bottom="%s" margin_left="%s"]',
+            $platform,
+            $icon_type,
+            $icon_size,
+            $icon_style,
+            $icon_alignment,
+            $custom_color,
             $margin_top,
             $margin_right,
             $margin_bottom,
@@ -39,117 +59,161 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
     }
 
     public function form($instance) {
-        $platform = !empty($instance['platform']) ? $instance['platform'] : '';
-        $icon_type = !empty($instance['icon_type']) ? $instance['icon_type'] : 'PNG';
-        $icon_size = !empty($instance['icon_size']) ? $instance['icon_size'] : '30px';
-        $icon_style = !empty($instance['icon_style']) ? $instance['icon_style'] : 'Icon only full color';
-        $icon_alignment = !empty($instance['icon_alignment']) ? $instance['icon_alignment'] : 'Center';
-        $custom_color = !empty($instance['custom_color']) ? $instance['custom_color'] : '#000000';
-        $margin_top = !empty($instance['margin_top']) ? intval($instance['margin_top']) : 0;
-        $margin_right = !empty($instance['margin_right']) ? intval($instance['margin_right']) : 0;
-        $margin_bottom = !empty($instance['margin_bottom']) ? intval($instance['margin_bottom']) : 0;
-        $margin_left = !empty($instance['margin_left']) ? intval($instance['margin_left']) : 0;
+        $widget_id = isset($this->id) ? $this->id : '';
 
-        $platforms = my_social_media_platforms();
+        $defaults = [
+            'platform'       => '',
+            'icon_type'      => 'PNG',
+            'icon_size'      => '30px',
+            'icon_style'     => 'Icon only full color',
+            'icon_alignment' => 'Center',
+            'custom_color'   => '#000000',
+            'margin_top'     => '0px',
+            'margin_right'   => '0px',
+            'margin_bottom'  => '0px',
+            'margin_left'    => '0px',
+            'link_margins'   => false,
+        ];
+        // Merge user-defined settings with defaults
+        $instance = wp_parse_args((array) $instance, $defaults);
 
-        $this->render_select_field('icon_type', esc_html__('Icon Type:', 'show-my-social-icons'), ['SVG' => 'SVG', 'PNG' => 'PNG'], $icon_type);
-        $this->render_select_field('icon_style', esc_html__('Icon Style:', 'show-my-social-icons'), [
-            'Icon only full color' => esc_html__('Icon only full color', 'show-my-social-icons'),
-            'Icon only black' => esc_html__('Icon only black', 'show-my-social-icons'),
-            'Icon only white' => esc_html__('Icon only white', 'show-my-social-icons'),
-            'Icon only custom color' => esc_html__('Icon only custom color', 'show-my-social-icons'),
-            'Full logo horizontal' => esc_html__('Full logo horizontal', 'show-my-social-icons'),
-            'Full logo square' => esc_html__('Full logo square', 'show-my-social-icons')
-        ], $icon_style);
-        $this->render_color_field('custom_color', esc_html__('Custom Color:', 'show-my-social-icons'), $custom_color, $icon_type === 'PNG' || $icon_style !== 'Icon only custom color');
-        $this->render_select_field('platform', esc_html__('Platform:', 'show-my-social-icons'), $platforms, $platform);
-        $this->render_text_field('icon_size', esc_html__('Icon Size:', 'show-my-social-icons'), $icon_size);
-        $this->render_select_field('icon_alignment', esc_html__('Icon Alignment:', 'show-my-social-icons'), [
-            'Left' => esc_html__('Left', 'show-my-social-icons'),
-            'Center' => esc_html__('Center', 'show-my-social-icons'),
-            'Right' => esc_html__('Right', 'show-my-social-icons')
-        ], $icon_alignment);
-        $this->render_margin_fields($margin_top, $margin_right, $margin_bottom, $margin_left);
+        // Extract variables for easy access
+        $platform           = esc_attr($instance['platform'] ?? '');
+        $icon_type          = esc_attr($instance['icon_type']);
+        $icon_size          = esc_attr($instance['icon_size']);
+        $icon_style         = esc_attr($instance['icon_style']);
+        $icon_alignment     = esc_attr($instance['icon_alignment']);
+        $custom_color       = esc_attr($instance['custom_color']);
+        $margin_top         = esc_attr($instance['margin_top']);
+        $margin_right       = esc_attr($instance['margin_right']);
+        $margin_bottom      = esc_attr($instance['margin_bottom']);
+        $margin_left        = esc_attr($instance['margin_left']);
+        $link_margins       = esc_attr($instance['link_margins']);
 
-        wp_enqueue_script('smsi-widget-admin', plugin_dir_url(__FILE__) . '../assets/js/widget-admin.js', array('jquery'), '1.0', true);
-        wp_localize_script('smsi-widget-admin', 'smsiWidgetData', array(
-            'widgetId' => $this->id
-        ));
-    }
-
-    private function render_select_field($name, $label, $options, $selected) {
-        printf(
-            '<p><label for="%1$s">%2$s</label><select class="widefat" id="%1$s" name="%3$s">',
-            esc_attr($this->get_field_id($name)),
-            esc_html($label),
-            esc_attr($this->get_field_name($name))
-        );
-        foreach ($options as $value => $option_label) {
-            printf(
-                '<option value="%s"%s>%s</option>',
-                esc_attr($value),
-                selected($selected, $value, false),
-                esc_html($option_label)
-            );
-        }
-        echo '</select></p>';
-    }
-
-    private function render_color_field($name, $label, $value, $disabled) {
-        printf(
-            '<p><label for="%1$s">%2$s</label><input class="widefat" id="%1$s" name="%3$s" type="color" value="%4$s"%5$s></p>',
-            esc_attr($this->get_field_id($name)),
-            esc_html($label),
-            esc_attr($this->get_field_name($name)),
-            esc_attr($value),
-            $disabled ? ' disabled' : ''
-        );
-    }
-
-    private function render_text_field($name, $label, $value) {
-        printf(
-            '<p><label for="%1$s">%2$s</label><input class="widefat" id="%1$s" name="%3$s" type="text" value="%4$s"></p>',
-            esc_attr($this->get_field_id($name)),
-            esc_html($label),
-            esc_attr($this->get_field_name($name)),
-            esc_attr($value)
-        );
-    }
-
-    private function render_margin_fields($top, $right, $bottom, $left) {
-        echo '<p><label>' . esc_html__('Container Margins (px):', 'show-my-social-icons') . '</label>';
-        echo '<div style="display: flex; justify-content: space-between; margin-bottom: 10px;">';
-        $this->render_number_field('margin_top', esc_html__('Top', 'show-my-social-icons'), $top);
-        $this->render_number_field('margin_bottom', esc_html__('Bottom', 'show-my-social-icons'), $bottom);
-        echo '</div><div style="display: flex; justify-content: space-between;">';
-        $this->render_number_field('margin_right', esc_html__('Right', 'show-my-social-icons'), $right);
-        $this->render_number_field('margin_left', esc_html__('Left', 'show-my-social-icons'), $left);
-        echo '</div></p>';
-        echo '<p><button type="button" class="button" id="' . esc_attr($this->get_field_id('link_margins')) . '">' . esc_html__('Link Margins', 'show-my-social-icons') . '</button></p>';
-    }
-
-    private function render_number_field($name, $placeholder, $value) {
-        printf(
-            '<input style="width: 48%%;" type="number" id="%1$s" name="%2$s" value="%3$s" placeholder="%4$s">',
-            esc_attr($this->get_field_id($name)),
-            esc_attr($this->get_field_name($name)),
-            esc_attr($value),
-            esc_attr($placeholder)
-        );
+        $platforms = smsi_get_platform_list();
+        ?>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('platform')); ?>">Platform:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('platform')); ?>" name="<?php echo esc_attr($this->get_field_name('platform')); ?>">
+                <?php foreach ($platforms as $key => $platform_info) : ?>
+                    <option value="<?php echo esc_attr($key); ?>" <?php selected($platform, $key); ?>><?php echo esc_html($platform_info['label']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </p>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('icon_type')); ?>">Icon Type:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_type')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_type')); ?>">
+                <option value="PNG" <?php selected($icon_type, 'PNG'); ?>>PNG</option>
+                <option value="SVG" <?php selected($icon_type, 'SVG'); ?>>SVG</option>
+            </select>
+        </p>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('icon_size')); ?>">Icon Size:</label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_size')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_size')); ?>" type="text" value="<?php echo esc_attr($icon_size); ?>" />
+        </p>        
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('icon_style')); ?>">Icon Style:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_style')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_style')); ?>">
+                <option value="Icon only full color" <?php selected($icon_style, 'Icon only full color'); ?>>Icon only full color</option>
+                <option value="Icon only black" <?php selected($icon_style, 'Icon only black'); ?>>Icon only black</option>
+                <option value="Icon only white" <?php selected($icon_style, 'Icon only white'); ?>>Icon only white</option>
+                <option value="Icon only custom color" <?php selected($icon_style, 'Icon only custom color'); ?>>Icon only custom color</option>
+                <option value="Full logo horizontal" <?php selected($icon_style, 'Full logo horizontal'); ?>>Full logo horizontal</option>
+                <option value="Full logo square" <?php selected($icon_style, 'Full logo square'); ?>>Full logo square</option>
+            </select>
+        </p>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('icon_alignment')); ?>">Icon Alignment:</label>
+            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_alignment')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_alignment')); ?>">
+                <option value="Left" <?php selected($icon_alignment, 'Left'); ?>>Left</option>
+                <option value="Center" <?php selected($icon_alignment, 'Center'); ?>>Center</option>
+                <option value="Right" <?php selected($icon_alignment, 'Right'); ?>>Right</option>
+            </select>
+        </p>
+        <p>
+            <label for="<?php echo esc_attr($this->get_field_id('custom_color')); ?>">Custom Color:</label>
+            <input class="widefat" 
+                   id="<?php echo esc_attr($this->get_field_id('custom_color')); ?>" 
+                   name="<?php echo esc_attr($this->get_field_name('custom_color')); ?>" 
+                   type="text" 
+                   value="<?php echo esc_attr($custom_color); ?>" 
+                   placeholder="#000000" />
+        </p>
+        <p>
+            <label>Container Margins:</label>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <!-- Top Margin -->
+                <div style="width: 23%;">
+                    <label for="<?php echo esc_attr($this->get_field_id('margin_top')); ?>">Top</label>
+                    <input type="text" 
+                           id="<?php echo esc_attr($this->get_field_id('margin_top')); ?>" 
+                           name="<?php echo esc_attr($this->get_field_name('margin_top')); ?>" 
+                           value="<?php echo esc_attr($margin_top); ?>" 
+                           placeholder="0px" 
+                           style="width: 100%;" />
+                </div>
+                
+                <!-- Right Margin -->
+                <div style="width: 23%;">
+                    <label for="<?php echo esc_attr($this->get_field_id('margin_right')); ?>">Right</label>
+                    <input type="text" 
+                           id="<?php echo esc_attr($this->get_field_id('margin_right')); ?>" 
+                           name="<?php echo esc_attr($this->get_field_name('margin_right')); ?>" 
+                           value="<?php echo esc_attr($margin_right); ?>" 
+                           placeholder="0px" 
+                           style="width: 100%;" />
+                </div>
+                
+                <!-- Bottom Margin -->
+                <div style="width: 23%;">
+                    <label for="<?php echo esc_attr($this->get_field_id('margin_bottom')); ?>">Bottom</label>
+                    <input type="text" 
+                           id="<?php echo esc_attr($this->get_field_id('margin_bottom')); ?>" 
+                           name="<?php echo esc_attr($this->get_field_name('margin_bottom')); ?>" 
+                           value="<?php echo esc_attr($margin_bottom); ?>" 
+                           placeholder="0px" 
+                           style="width: 100%;" />
+                </div>
+                
+                <!-- Left Margin -->
+                <div style="width: 23%;">
+                    <label for="<?php echo esc_attr($this->get_field_id('margin_left')); ?>">Left</label>
+                    <input type="text" 
+                           id="<?php echo esc_attr($this->get_field_id('margin_left')); ?>" 
+                           name="<?php echo esc_attr($this->get_field_name('margin_left')); ?>" 
+                           value="<?php echo esc_attr($margin_left); ?>" 
+                           placeholder="0px" 
+                           style="width: 100%;" />
+                </div>
+            </div>
+        </p>
+        <!-- Link Margins Button -->
+        <p>
+            <button type="button" class="button" id="<?php echo esc_attr($this->get_field_id('link_margins')); ?>" <?php echo $link_margins ? 'data-linked="true"' : 'data-linked="false"'; ?>><?php echo $link_margins ? 'Unlink Margins' : 'Link Margins'; ?></button>
+        </p>
+    <?php
     }
 
     public function update($new_instance, $old_instance) {
+        $instance = [];
+
         $instance = array();
-        $instance['platform'] = (!empty($new_instance['platform'])) ? sanitize_text_field($new_instance['platform']) : '';
-        $instance['icon_type'] = (!empty($new_instance['icon_type'])) ? sanitize_text_field($new_instance['icon_type']) : '';
-        $instance['icon_size'] = (!empty($new_instance['icon_size'])) ? sanitize_text_field($new_instance['icon_size']) : '';
-        $instance['icon_style'] = (!empty($new_instance['icon_style'])) ? sanitize_text_field($new_instance['icon_style']) : '';
-        $instance['icon_alignment'] = (!empty($new_instance['icon_alignment'])) ? sanitize_text_field($new_instance['icon_alignment']) : '';
-        $instance['custom_color'] = (!empty($new_instance['custom_color'])) ? sanitize_hex_color($new_instance['custom_color']) : '';
-        $instance['margin_top'] = (!empty($new_instance['margin_top'])) ? intval($new_instance['margin_top']) : 0;
-        $instance['margin_right'] = (!empty($new_instance['margin_right'])) ? intval($new_instance['margin_right']) : 0;
-        $instance['margin_bottom'] = (!empty($new_instance['margin_bottom'])) ? intval($new_instance['margin_bottom']) : 0;
-        $instance['margin_left'] = (!empty($new_instance['margin_left'])) ? intval($new_instance['margin_left']) : 0;
+        $instance['platform']        = isset($new_instance['platform']) ? sanitize_text_field($new_instance['platform']) : '';
+        $instance['icon_type']       = isset($new_instance['icon_type']) ? sanitize_text_field($new_instance['icon_type']) : 'PNG';
+        $instance['icon_size']       = isset($new_instance['icon_size']) ? smsi_sanitize_unit_value($new_instance['icon_size']) : '30px';
+        $instance['icon_style']      = isset($new_instance['icon_style']) ? sanitize_text_field($new_instance['icon_style']) : 'Icon only full color';
+        $instance['icon_alignment']  = isset($new_instance['icon_alignment']) ? sanitize_text_field($new_instance['icon_alignment']) : 'Center';
+        if (isset($new_instance['custom_color']) && $new_instance['icon_type'] === 'SVG') {
+            $instance['custom_color'] = sanitize_hex_color($new_instance['custom_color']);
+        } else {
+            $instance['custom_color'] = '#000000';
+        }
+        $instance['margin_top']      = isset($new_instance['margin_top']) ? smsi_sanitize_unit_value($new_instance['margin_top']) : '0px';
+        $instance['margin_right']    = isset($new_instance['margin_right']) ? smsi_sanitize_unit_value($new_instance['margin_right']) : '0px';
+        $instance['margin_bottom']   = isset($new_instance['margin_bottom']) ? smsi_sanitize_unit_value($new_instance['margin_bottom']) : '0px';
+        $instance['margin_left']     = isset($new_instance['margin_left']) ? smsi_sanitize_unit_value($new_instance['margin_left']) : '0px';
+        $instance['link_margins'] = isset($new_instance['link_margins']) ? (bool) $new_instance['link_margins'] : false;
+
         return $instance;
     }
 }

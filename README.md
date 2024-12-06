@@ -16,18 +16,27 @@ Show My Social Icons is a versatile WordPress plugin that allows you to add and 
 - Individual icon display option
 
 The social media platforms currently supported are: 
+- Address (general contact information)
+- Amazon
+- Audible
+- Barnes & Noble
 - Behance
 - Bitchute
+- BookBub
 - CashApp
 - CloutHub
 - Digg
 - Discord
+- Email (general contact information)
 - Facebook
 - Fiverr
 - Gab
 - GitHub
 - GiveSendGo
+- Goodreads
 - Instagram
+- Landline Phone (general contact information)
+- LibraryThing
 - LinkedIn
 - Linktree
 - Locals
@@ -38,6 +47,7 @@ The social media platforms currently supported are:
 - Parler
 - Patreon
 - PayPal
+- Phone (general contact information)
 - Pinterest
 - Public Square
 - Quora
@@ -55,6 +65,7 @@ The social media platforms currently supported are:
 - Venmo
 - Vimeo
 - VK
+- Website (general contact information)
 - WhatsApp
 - YouTube
 - Zelle

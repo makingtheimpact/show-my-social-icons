@@ -7,51 +7,6 @@
  * @package ShowMySocialIcons
  */
 
-/**
- * Enqueue scripts and styles for the admin area.
- *
- * @param string $hook The current admin page.
- * @return void
- */
-function smsi_admin_enqueue_scripts($hook) {
-    global $main_page_hook, $docs_page_hook, $icon_preview_page_hook; // Access global variables
-
-    // Check if we are on any of the relevant pages
-    if ($hook !== $main_page_hook && $hook !== $docs_page_hook && $hook !== $icon_preview_page_hook) {
-        return;
-    }
-
-    // Enqueue your styles and scripts
-    wp_enqueue_style('smsi-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-style.css', array(), '1.0.0');
-    wp_enqueue_script('jquery-ui-sortable');
-    wp_enqueue_script('smsi-admin-script', plugin_dir_url(__FILE__) . 'assets/js/admin-script.js', array('jquery', 'jquery-ui-sortable'), '1.0.0', true);
-    
-    // Enqueue front-end styles
-    global $smsi_plugin_dir_path;
-    wp_enqueue_style('smsi-frontend-styles', $smsi_plugin_dir_path . 'assets/css/style.css', array(), '1.0.0');
-
-    // Pass data to the script
-    wp_localize_script('smsi-admin-script', 'smsiData', array(
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('smsi_nonce')
-    ));
-
-    $asset_file = include(plugin_dir_path(dirname(__FILE__)) . 'build/index.asset.php');
-
-    wp_enqueue_script(
-        'smsi-block-editor',
-        plugins_url('build/index.js', dirname(__FILE__)),
-        $asset_file['dependencies'],
-        filemtime(plugin_dir_path(dirname(__FILE__)) . 'build/index.js'),
-        true
-    );
-
-    wp_localize_script('smsi-block-editor', 'smsiPlatforms', array(
-        'platforms' => my_social_media_platforms()
-    ));
-}
-add_action('admin_enqueue_scripts', 'smsi_admin_enqueue_scripts');
-
 
 /**
  * Add admin menu
@@ -210,6 +165,24 @@ function smsi_setup_icon_style_settings() {
     add_settings_field('display_in_menu', 'Show All Icons in Main Menu', 'smsi_display_in_menu_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
     register_setting('show_my_social_icons_advanced_settings', 'display_in_menu', 'smsi_sanitize_display_in_menu');
 
+    add_settings_field(
+        'smsi_menu_location',
+        'Select Menu Location',
+        'smsi_menu_location_callback',
+        'show_my_social_icons_advanced',
+        'show_my_social_icons_settings_section'
+    );
+    register_setting('show_my_social_icons_advanced_settings', 'smsi_menu_location');
+
+    add_settings_field(
+        'smsi_menu_icons',
+        'Select Icons to Display in Menu',
+        'smsi_menu_icons_callback',
+        'show_my_social_icons_advanced',
+        'show_my_social_icons_settings_section'
+    );
+    register_setting('show_my_social_icons_advanced_settings', 'smsi_menu_icons', 'smsi_sanitize_menu_icons');
+
     add_settings_field('icon_spacing', 'Icon Spacing', 'smsi_icon_spacing_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
     register_setting('show_my_social_icons_advanced_settings', 'icon_spacing', 'esc_attr');
 
@@ -260,9 +233,9 @@ function smsi_setup_icon_style_settings() {
  * @return void
  */
 function smsi_force_load_styles_callback() {
-    $value = get_option('smsi_force_load_styles', '0');
+    $value = get_option('smsi_force_load_styles', '1');
     echo '<input type="checkbox" name="smsi_force_load_styles" value="1"' . checked(1, $value, false) . ' /> ';
-    echo "<span class='description'>Check this box if the icons are not displaying correctly.</span>";
+    echo "<span class='description'>Force load CSS styles for the social icons.</span>";
 }
 
 /**
@@ -348,6 +321,173 @@ function smsi_display_in_menu_callback() {
 }
 
 /**
+ * Menu Location Callback
+ *
+ * @return void
+ */
+function smsi_menu_location_callback() {
+    $value = get_option('smsi_menu_location', 'primary');
+    $menus = get_registered_nav_menus();
+
+    if(empty($menus)) {
+        echo '<p>No registered menus found. Please register a menu location first.</p>';
+        return;
+    }
+
+    echo "<select name='smsi_menu_location'>";
+    foreach ($menus as $location => $description) {
+        echo "<option value='" . esc_attr($location) . "' " . selected($value, $location, false) . ">" . esc_html($description) . "</option>";
+    }
+    echo "</select>";
+}
+
+/**
+ * Select and Order Menu Icons Callback
+ *
+ * @return void
+ */
+function smsi_menu_icons_callback() {
+    $platforms = smsi_get_platform_list(); 
+    $selected_icons = get_option('smsi_menu_icons', []);
+
+    if (!is_array($selected_icons)) {
+        $selected_icons = [];
+    }
+
+    // Filter platforms that have URLs set
+    $available_platforms = array_filter($platforms, function($platform_id) {
+        return !empty(get_option("{$platform_id}_url"));
+    }, ARRAY_FILTER_USE_KEY);
+
+    ?>
+    <div id="smsi-menu-icons-wrapper">
+        <ul id="smsi-menu-icons-list">
+            <?php foreach ($available_platforms as $platform_id => $platform) : 
+                $icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '30px', 'Icon only full color'); 
+                ?>
+                <li class="smsi-menu-icon-item">
+                    <input type="checkbox" name="smsi_menu_icons[]" value="<?php echo esc_attr($platform_id); ?>" <?php checked(in_array($platform_id, $selected_icons)); ?> />
+                    <img src="<?php echo esc_url($icon_path); ?>" alt="<?php echo esc_attr($platform['label']); ?>" style="width: 20px; height: 20px; margin-right: 5px;" />
+                    <?php echo esc_html($platform['label']); ?>
+                </li>
+            <?php endforeach; 
+            if (empty($available_platforms)) : ?>
+                <li class="smsi-menu-icon-item">
+                    <p>No platforms have URLs set. Please set the URLs in the <a href='?page=smsi_settings'>Platform Settings</a>.</p>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </div>
+    <p>Drag and drop to order the icons as desired.</p>
+    <style>
+        #smsi-menu-icons-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .smsi-menu-icon-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            cursor: move;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            margin-bottom: 3px;
+            max-width: 300px;
+        }
+    </style>
+    <script>
+       jQuery(document).ready(function($){
+            $('#smsi-menu-icons-list').sortable({
+                axis: 'y',
+                placeholder: "ui-state-highlight",
+                update: function(event, ui) {
+                    var order = [];
+                    $('#smsi-menu-icons-list li').each(function(){
+                        var platformId = $(this).find('input[type=checkbox]').val();
+                        if (platformId) {
+                            order.push(platformId);
+                        }
+                    });
+
+                    $.ajax({
+                        url: smsiData.ajaxurl, // Correctly referencing smsiData
+                        type: 'POST',
+                        data: {
+                            action: 'smsi_save_menu_icon_order',
+                            order: order,
+                            nonce: smsiData.nonce // Correctly referencing smsiData
+                        },
+                        success: function(response) {
+                            if(response.success){
+                                // Optionally, display a success message
+                                console.log('Order saved successfully.');
+                            } else {
+                                // Handle the error
+                                console.error('Failed to save order.');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('AJAX Error:', error);
+                        }
+                    });
+                }
+            });
+            $('#smsi-menu-icons-list').disableSelection();
+        });
+   </script>
+    <?php
+}
+
+ /**
+    * Handle AJAX Request to Save Menu Icon Order
+    */
+    function smsi_save_menu_icon_order() {
+        // Verify the nonce - updated to 'smsi_nonce' to match the JavaScript
+        check_ajax_referer('smsi_nonce', 'nonce');
+
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        // Retrieve and sanitize the order
+        $order = isset($_POST['order']) ? array_map('sanitize_text_field', $_POST['order']) : [];
+
+        // Get available platforms
+        $platforms = smsi_get_platform_list();
+        $available_platforms = array_filter($platforms, function($platform_id) {
+            return !empty(get_option("{$platform_id}_url"));
+        }, ARRAY_FILTER_USE_KEY);
+
+        // Filter the order to include only available platforms
+        $filtered_order = array_intersect($order, array_keys($available_platforms));
+
+        // Update the option
+        update_option('smsi_menu_icons', $filtered_order);
+
+        wp_send_json_success();
+    }
+    add_action('wp_ajax_smsi_save_menu_icon_order', 'smsi_save_menu_icon_order');
+
+/**
+ * Retrieve a Single Platform's Data
+ *
+ * @param string $platform_id The platform ID.
+ * @return array|false
+ */
+function smsi_get_platform($platform_id) {
+    $platforms = smsi_get_platform_list();
+    if(isset($platforms[$platform_id])) {
+        $platform = $platforms[$platform_id];
+        // Retrieve the URL set in Platform Settings
+        $platform['url'] = get_option('smsi_platform_url_' . $platform_id, '');
+        return $platform;
+    }
+    return false;
+}
+
+/**
  * Icon Spacing Callback
  *
  * @return void
@@ -387,14 +527,18 @@ function smsi_icon_container_margin_left_callback() {
             <p class='description'>Enter the left margin for the icon container (e.g., 10px, 1em)</p>";
 }
 
-function smsi_menu_location_callback() {
-    $value = get_option('smsi_menu_location', 'primary');
-    $menus = get_registered_nav_menus();
-    echo "<select name='smsi_menu_location'>";
-    foreach ($menus as $location => $description) {
-        echo "<option value='" . esc_attr($location) . "' " . selected($value, $location, false) . ">" . esc_html($description) . "</option>";
+/**
+ * Sanitize Menu Icons
+ *
+ * @param array $input The input array from the form.
+ * @return array Sanitized array of platform IDs.
+ */
+function smsi_sanitize_menu_icons($input) {
+    if (!is_array($input)) {
+        return [];
     }
-    echo "</select>";
+    // Sanitize each platform ID
+    return array_map('sanitize_text_field', $input);
 }
 
 /**
@@ -437,12 +581,14 @@ require_once plugin_dir_path(__FILE__) . 'platforms_list.php';
 function smsi_documentation_page_content() {
     $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
 
-    $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'shortcodes';
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'instructions';
 
     $tabs = [
+        'instructions' => 'Instructions',
         'shortcodes' => 'Shortcodes',
         'faqs' => 'FAQs',
-        'troubleshooting' => 'Troubleshooting'
+        'troubleshooting' => 'Troubleshooting',
+        
     ];
 
     echo '<div class="wrap smsi-settings-page">';
@@ -456,6 +602,9 @@ function smsi_documentation_page_content() {
     <div class="smsi-info-page">';
 
     switch ($active_tab) {
+        case 'instructions':
+            smsi_instructions_tab_content();
+            break;
         case 'faqs':
             smsi_faqs_tab_content();
             break;
@@ -472,6 +621,105 @@ function smsi_documentation_page_content() {
     </div>';
 }
 
+/**
+ * Instructions Tab Content
+ *
+ * @return void
+ */
+function smsi_instructions_tab_content() {
+    $docs_instructions_content = "
+    <h2>Instructions</h2>
+    <p>This plugin allows you to display social media icons on your website. You can use the blocks, widgets, or shortcodes to display the icons. You can also add them to your navigation menu.</p>
+    ";
+    // Explain the platform and default settings
+    $docs_instructions_content .= "
+    <h3>Plugin Settings</h3>
+    <p>The plugin settings are located on the <a href='?page=smsi_settings'>Settings</a> page. Set the URL for each platform you want to display. You can reorder the platforms by dragging and dropping them.</p>
+    <p>You can set the icon type, size, style, alignment, spacing, and margin values for the icons. You can also set the display options for the icons.</p>
+    ";  
+
+    // Explain how to display the icons using blocks, widgets, and shortcodes
+    $docs_instructions_content .= "
+    <h3>Displaying the Icons</h3>
+    <p>You can display the icons using the following methods:</p>
+    <h4>Gutenberg Blocks</h4>
+    <p>The plugin includes two Gutenberg blocks: <i>All Icons</i> and <i>Single Icon</i>.</p>
+
+    <h4>Legacy Widgets</h4>
+    <p>The plugin includes two legacy widgets: <i>(All Icons) Show My Social Icons</i> and <i>(Single Icon) My Social Icon</i>.</p>
+
+    <h4>Shortcodes</h4>
+    <p>The plugin includes two shortcodes: <i>[show_my_social_icons]</i> and <i>[my_social_icon]</i>.</p>
+    ";
+    // Explain the settings for blocks, widgets, and shortcodes
+    $docs_instructions_content .= "
+    <h3>Icon Settings</h3>
+    <p>You can set the icon type, size, style, alignment, spacing, and margin values for the icons in the block, widget, or shortcode attributes or in the plugin settings. The settings apply to all icons. The block, widget, or shortcode attributes apply to the individual block, widget, or shortcode.</p>
+
+    <h4>All Icons Block</h4>
+    <p>The <i>All Icons</i> block displays all active social icons. You can customize this block with the following attributes:</p>
+    <ul>
+        <li><strong>Type</strong> - Specifies the icon type (SVG or PNG). Default is 'PNG'.</li>
+        <li><strong>Size</strong> - Specifies the size of the icons (e.g., '100px', '200px', '50%', '100%'). Default is '30px'.</li>
+        <li><strong>Style</strong> - Specifies the style of the icons (e.g., 'Icon only full color', 'Full logo horizontal'). See above for available options according to icon type. Default is 'Icon only full color'.</li>
+        <li><strong>Alignment</strong> - Aligns the icons (Left, Center, Right). Default is 'Center'.</li>
+        <li><strong>Spacing</strong> - Specifies the spacing between icons (e.g., '10px', '1em').</li>
+        <li><strong>Custom Color (SVG only)</strong> - Specifies the color of the icons (e.g., 'red', '#000', '#fff'). Default is '#000'.</li>
+        <li><strong>Margin Top</strong> - Specifies the margin-top value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Bottom</strong> - Specifies the margin-bottom value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Left</strong> - Specifies the margin-left value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Right</strong> - Specifies the margin-right value (e.g., '10px', '1em').</li>
+    </ul>
+
+    <h4>Single Icon Block</h4>
+    <p>The <i>Single Icon</i> block displays a single social icon. You can customize this block with the following attributes:</p>
+    <ul>
+        <li><strong>Platform</strong> - Specifies the platform icon to display. The icon will only display if the platform URL is set in the settings.</li>
+        <li><strong>Size</strong> - Specifies the size of the icon (e.g., '100px', '200px', '50%', '100%'). Default is '30px'.</li>
+        <li><strong>Style</strong> - Specifies the style of the icon (e.g., 'Icon only full color', 'Full logo horizontal'). See above for available options according to icon type. Default is 'Icon only full color'.</li>
+        <li><strong>Alignment</strong> - Aligns the icon (Left, Center, Right). Default is 'Center'.</li>
+        <li><strong>Margin Top</strong> - Specifies the margin-top value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Bottom</strong> - Specifies the margin-bottom value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Left</strong> - Specifies the margin-left value (e.g., '10px', '1em').</li>
+        <li><strong>Margin Right</strong> - Specifies the margin-right value (e.g., '10px', '1em').</li>
+    </ul>
+    ";
+
+    // Explain the Menu Icons and Settings
+    $docs_instructions_content .= "
+    <h3>Menu Icons and Settings</h3>
+    <p>You can add the icons to your menu by enabling the <i>Display in Menu</i> option in the plugin settings. You can select the menu location and the icons to display in the menu. The size of the icons will be set according to the default size you set in the plugin settings.</p>
+    ";
+
+    // Explain the CSS classes used for the icons
+    $docs_instructions_content .= "
+    <h3>CSS Classes</h3>
+    <h4>Menu Icons</h4>
+    <p>The plugin uses the following CSS classes for the menu icons:</p>
+    <ul>
+        <li><strong>.smsi-icon-wrapper</strong> - Used for the icon wrapper.</li>
+        <li><strong>.smsi-menu-social-icons</strong> - Used for the menu icons.</li>
+        <li><strong>.smsi-menu-icon</strong> - Used for the menu icon.</li>
+        <li><strong>.smsi-icon-hover-style1</strong> - Used for the first hover effect.</li>
+        <li><strong>.smsi-icon-hover-style2</strong> - Used for the second hover effect.</li>
+        <li><strong>.smsi-icon-hover-style3</strong> - Used for the third hover effect.</li>
+    </ul>
+    <h4>All Icons Block</h4>
+    <p>The plugin uses the following CSS classes for the icons:</p>
+    <ul>
+        <li><strong>.smsi-icon-wrapper</strong> - Used for the individual icon wrapper.</li>
+        <li><strong>.smsi-icon</strong> - Used for the icon.</li>
+    </ul>
+    <h4>Single Icon Block</h4>
+    <p>The plugin uses the following CSS classes for the icons:</p>
+    <ul>
+        <li><strong>.smsi-single-icon-wrapper</strong> - Used for the individual icon container.</li>
+        <li><strong>.smsi-icon</strong> - Used for the icon.</li>
+        <li><strong>.smsi-icon-[platform]</strong> - Used for the specific platform icon.</li>
+    </ul>
+    ";
+    echo wp_kses_post($docs_instructions_content);
+}   
 
 /**
  * FAQs Tab Content
@@ -486,13 +734,14 @@ function smsi_faqs_tab_content() {
     <p>You can add social icons to your website using the Gutenberg blocks, legacy widgets, or shortcodes. You can also add them to your navigation menu.</p>
     <h3>How do I add social icons to my menu?</h3>
     <p>To add social icons to your menu, go to the settings page and enable the <i>Display in Menu</i> option.</p>
+
     <h3>Can I customize the color of the icons?</h3>
     <p>Yes, you can customize the color of the icons by selecting SVG from the icon type dropdown, selecting the <i>Icon only custom color</i> option, and specifying the color. These options are available in the icon settings for each block and widget.</p>
     <h3>What is the difference between SVG and PNG icons?</h3>
     <p>SVG icons are scalable without loss of quality, while PNG icons have a fixed resolution. SVG icons are also smaller in file size for simple icons, but not supported by all browsers (especially older ones). PNG icons are supported by all browsers, but may pixelate when enlarged beyond 500px.</p>
     <h3>I need a social media platform added, what do I do?</h3>
     <p>If you need a social media platform added, please contact us at <a href='mailto:customerservice@maketheimpact.com'>customerservice@maketheimpact.com</a>.</p>
-    <h3>I am having trouble with the icons not displaying, what do I do?</h3>
+    <h3>The icons are not displaying, what do I do?</h3>
     <p>Check the troubleshooting section for possible solutions. If you have tried those solutions and the icons are still not displaying correctly, please contact us at <a href='mailto:customerservice@maketheimpact.com'>customerservice@maketheimpact.com</a>.</p>
     ";
     echo wp_kses_post($docs_faq_content);
@@ -506,18 +755,18 @@ function smsi_faqs_tab_content() {
 function smsi_troubleshooting_tab_content() {
     $docs_troubleshooting_content = "
     <h2>Troubleshooting</h2>
-    <h3>How do I troubleshoot the CSS styles not being loaded?</h3>
+    <h3>The CSS styles are not being loaded, what do I do?</h3>
     <p>If the CSS styles are not being loaded, you can try the following:</p>
     <ul>
         <li>Check the <i>Force Load Styles</i> option in the settings.</li>
         <li>Clear the website cache and if necessary, adjust the settings.</li>
         <li>Clear the browser cache.</li>
     </ul>
-    <h3>How do I troubleshoot the icons not displaying?</h3>
-    <p>If the icons are not displaying, you can try the following:</p>
+    <h3>The icons are not displaying or displaying incorrectly, what do I do?</h3>
+    <p>If the icons are not displaying or displaying incorrectly, check the following:</p>
     <ul>
-        <li>Ensure the platform URL is set correctly in the settings.</li>
-        <li>Check the settings for the blocks and widgets to ensure they are set to the correct options.</li>
+        <li>Ensure the platform URL is set in the Platform Settings.</li>
+        <li>Check the settings for the blocks, widgets, and shortcodes to ensure they are set to the correct options that are actually supported.</li>
         <li>Ensure that the icons are not being blocked by any ad blockers or browser extensions.</li>
         <li>Enable the <i>Force Load Styles</i> option in the settings.</li>
         <li>Clear the website cache and adjust the settings if necessary.</li>
@@ -536,6 +785,11 @@ function smsi_troubleshooting_tab_content() {
  */
 function smsi_shortcodes_tab_content() {
     global $smsi_plugin_dir_path;
+    $platforms = smsi_get_platform_list();
+    $platform_list_html = "";
+    foreach ($platforms as $platform_id => $platform) {
+        $platform_list_html .= "<tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/{$platform_id}_icon_100px.png' class='smsi-icon'> {$platform['label']}</td><td>{$platform_id}</td></tr>";
+    }
     $shortcode_info_page_content = "
     <h2>Shortcode Info</h2>
 
@@ -644,48 +898,7 @@ function smsi_shortcodes_tab_content() {
     <p>Below is a list of the platforms this plugin currently supports. Use the platform ID in the shortcode attributes.</p>
 
     <table class='smsi-platform-list' cellspacing='0'><thead><th>Platform</th><th>Platform ID</th></thead>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/behance_icon_100px.png' class='smsi-icon'> Behance</td><td>behance</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/bitchute_icon_100px.png' class='smsi-icon'> Bitchute</td><td>bitchute</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/cashapp_icon_100px.png' class='smsi-icon'> CashApp</td><td>cashapp</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/clouthub_icon_100px.png' class='smsi-icon'> CloutHub</td><td>clouthub</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/digg_icon_100px.png' class='smsi-icon'> Digg</td><td>digg</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/discord_icon_100px.png' class='smsi-icon'> Discord</td><td>discord</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/facebook_icon_100px.png' class='smsi-icon'> Facebook</td><td>facebook</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/fiverr_icon_100px.png' class='smsi-icon'> Fiverr</td><td>fiverr</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/gab_icon_100px.png' class='smsi-icon'> Gab</td><td>gab</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/github_icon_100px.png' class='smsi-icon'> GitHub</td><td>github</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/givesendgo_icon_100px.png' class='smsi-icon'> GiveSendGo</td><td>givesendgo</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/instagram_icon_100px.png' class='smsi-icon'> Instagram</td><td>instagram</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/linkedin_icon_100px.png' class='smsi-icon'> LinkedIn</td><td>linkedin</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/linktree_icon_100px.png' class='smsi-icon'> Linktree</td><td>linktree</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/locals_icon_100px.png' class='smsi-icon'> Locals</td><td>locals</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/mastodon_icon_100px.png' class='smsi-icon'> Mastodon</td><td>mastodon</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/minds_icon_100px.png' class='smsi-icon'> Minds</td><td>minds</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/myspace_icon_100px.png' class='smsi-icon'> MySpace</td><td>myspace</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/odysee_icon_100px.png' class='smsi-icon'> Odysee</td><td>odysee</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/parler_icon_100px.png' class='smsi-icon'> Parler</td><td>parler</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/patreon_icon_100px.png' class='smsi-icon'> Patreon</td><td>patreon</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/paypal_icon_100px.png' class='smsi-icon'> PayPal</td><td>paypal</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/pinterest_icon_100px.png' class='smsi-icon'> Pinterest</td><td>pinterest</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/publicsq_icon_100px.png' class='smsi-icon'> Public Square</td><td>publicsq</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/quora_icon_100px.png' class='smsi-icon'> Quora</td><td>quora</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/reddit_icon_100px.png' class='smsi-icon'> Reddit</td><td>reddit</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/rokfin_icon_100px.png' class='smsi-icon'> Rokfin</td><td>rokfin</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/rumble_icon_100px.png' class='smsi-icon'> Rumble</td><td>rumble</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/snapchat_icon_100px.png' class='smsi-icon'> Snapchat</td><td>snapchat</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/substack_icon_100px.png' class='smsi-icon'> Substack</td><td>substack</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/telegram_icon_100px.png' class='smsi-icon'> Telegram</td><td>telegram</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/tiktok_icon_100px.png' class='smsi-icon'> TikTok</td><td>tiktok</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/truth_social_icon_100px.png' class='smsi-icon'> Truth Social</td><td>truth_social</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/twitch_icon_100px.png' class='smsi-icon'> Twitch</td><td>twitch</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/twitter_x_icon_100px.png' class='smsi-icon'> X (formerly Twitter)</td><td>twitter_x</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/unite_icon_100px.png' class='smsi-icon'> Unite</td><td>unite</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/venmo_icon_100px.png' class='smsi-icon'> Venmo</td><td>venmo</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/vimeo_icon_100px.png' class='smsi-icon'> Vimeo</td><td>vimeo</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/vk_icon_100px.png' class='smsi-icon'> vk</td><td>vk</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/whatsapp_icon_100px.png' class='smsi-icon'> WhatsApp</td><td>whatsapp</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/youtube_icon_100px.png' class='smsi-icon'> YouTube</td><td>youtube</td></tr>
-    <tr><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/100w/zelle_icon_100px.png' class='smsi-icon'> Zelle</td><td>zelle</td></tr>
+    {$platform_list_html}
     </table>
     ";
     echo wp_kses_post($shortcode_info_page_content);
@@ -723,6 +936,30 @@ add_action('wp_ajax_preview_shortcode', 'smsi_preview_shortcode_callback');
 function smsi_icon_preview_page_content() {
     global $smsi_plugin_dir_path;
     $logo_url = plugins_url('assets/images/plugin-logo.png', dirname(__FILE__));
+    $platform_list_html = "";
+    $platform_list = smsi_get_platform_list();
+    foreach ($platform_list as $platform_id => $platform) {
+        // Horizontal icon 150px
+        $hz_icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '150px', 'Full logo horizontal');
+        // Square icon 150px
+        $sq_icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '150px', 'Full logo square');
+        // Icon only full color 150px   
+        $ic_c_icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '150px', 'Icon only full color');
+        // Icon only black 150px
+        $ic_b_icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '150px', 'Icon only black');
+        // Icon only white 150px
+        $ic_w_icon_path = smsi_get_single_social_icon_path($platform_id, 'PNG', '150px', 'Icon only white');
+        $platform_list_html .= "
+        <tr>
+            <td>" . $platform['label'] . "</td>
+            <td>" . $platform_id . "</td>
+            <td><img src='" . $hz_icon_path . "' class='smsi-icon smsi-icon-light-bg'></td>
+            <td><img src='" . $sq_icon_path . "' class='smsi-icon smsi-icon-light-bg'></td>
+            <td><img src='" . $ic_c_icon_path . "' class='smsi-icon smsi-icon-light-bg'></td>
+            <td><img src='" . $ic_b_icon_path . "' class='smsi-icon smsi-icon-light-bg'></td>
+            <td><img src='" . $ic_w_icon_path . "' class='smsi-icon smsi-icon-dark-bg'></td>
+        </tr>";
+    }
     
     $icon_preview_page_html = "
     <div class='wrap smsi-icon-preview-page'>
@@ -730,48 +967,7 @@ function smsi_icon_preview_page_content() {
         <h2>Social Media Icon Preview</h2>
         <p>Below is a table of all the social media icons currently supported by this plugin.</p><p>The icons have a <strong>transparent background</strong> and the icons in the PNG format are available in sizes 100px, 150px, 200px, 300px, and 500px. An animated background has been applied to give you an idea of what the icons will look like on different colored backgrounds.</p>
         <table class='smsi-icon-preview-table' cellspacing='0'><thead><th class='smsi-thead-left'>Platform</th><th class='smsi-thead-left'>Platform ID</th><th>Horizontal</th><th>Square</th><th>Icon Only Full Color</th><th>Icon Only Black</th><th>Icon Only White</th></thead>
-        <tr><td>Behance</td><td>behance</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/behance_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/behance_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/behance_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Bitchute</td><td>bitchute</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/bitchute_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/bitchute_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/bitchute_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>CashApp</td><td>cashapp</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/cashapp_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/cashapp_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/cashapp_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/cashapp_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/cashapp_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>CloutHub</td><td>clouthub</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/clouthub_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/clouthub_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/clouthub_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/clouthub_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/clouthub_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Digg</td><td>digg</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/digg_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/digg_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/digg_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/digg_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/digg_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Discord</td><td>discord</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/discord_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/discord_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/discord_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/discord_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/discord_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Facebook</td><td>facebook</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/facebook_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/facebook_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/facebook_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/facebook_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/facebook_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Fiverr</td><td>fiverr</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/fiverr_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/fiverr_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/fiverr_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/fiverr_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/fiverr_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Gab</td><td>gab</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/gab_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/gab_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/gab_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/gab_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/gab_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>GitHub</td><td>github</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/github_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/github_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/github_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/github_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/github_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>GiveSendGo</td><td>givesendgo</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/givesendgo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/givesendgo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/givesendgo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/givesendgo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/givesendgo_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Instagram</td><td>instagram</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/instagram_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/instagram_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/instagram_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/instagram_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/instagram_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>LinkedIn</td><td>linkedin</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/linkedin_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/linkedin_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/linkedin_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/linkedin_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/linkedin_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Linktree</td><td>linktree</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/linktree_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/linktree_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/linktree_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/linktree_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/linktree_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Locals</td><td>locals</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/locals_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/locals_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/locals_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/locals_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/locals_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Mastodon</td><td>mastodon</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/mastodon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/mastodon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/mastodon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/mastodon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/mastodon_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Minds</td><td>minds</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/minds_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/minds_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/minds_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>MySpace</td><td>myspace</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/myspace_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/myspace_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/myspace_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Odysee</td><td>odysee</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/odysee_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/odysee_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/odysee_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Parler</td><td>parler</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/parler_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/parler_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/parler_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Patreon</td><td>patreon</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/patreon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/patreon_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/patreon_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>PayPal</td><td>paypal</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/paypal_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/paypal_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/paypal_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Pinterest</td><td>pinterest</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/pinterest_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/pinterest_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/pinterest_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Public Square</td><td>publicsq</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/publicsq_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/publicsq_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/publicsq_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/publicsq_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/publicsq_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Quora</td><td>quora</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/quora_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/quora_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/quora_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/quora_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/quora_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Reddit</td><td>reddit</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/reddit_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/reddit_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/reddit_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/reddit_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/reddit_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Rokfin</td><td>rokfin</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/rokfin_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/rokfin_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/rokfin_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/rokfin_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/rokfin_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Rumble</td><td>rumble</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/rumble_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/rumble_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/rumble_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/rumble_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/rumble_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Snapchat</td><td>snapchat</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/snapchat_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/snapchat_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/snapchat_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/snapchat_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/snapchat_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Substack</td><td>substack</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/substack_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/substack_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/substack_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/substack_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/substack_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Telegram</td><td>telegram</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/telegram_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/telegram_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/telegram_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/telegram_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/telegram_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>TikTok</td><td>tiktok</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/tiktok_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/tiktok_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/tiktok_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/tiktok_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/tiktok_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Truth Social</td><td>truth_social</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/truth_social_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/truth_social_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/truth_social_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/truth_social_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/truth_social_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Twitch</td><td>twitch</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/twitch_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/twitch_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/twitch_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/twitch_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/twitch_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>X (formerly Twitter)</td><td>twitter_x</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/twitter_x_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/twitter_x_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/twitter_x_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/twitter_x_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/twitter_x_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Unite</td><td>unite</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/unite_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/unite_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/unite_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/unite_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/unite_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Venmo</td><td>venmo</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/venmo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/venmo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/venmo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/venmo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/venmo_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Vimeo</td><td>vimeo</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/vimeo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/vimeo_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/vimeo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/vimeo_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/vimeo_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>vk</td><td>vk</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/vk_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/vk_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/vk_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/vk_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/vk_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>WhatsApp</td><td>whatsapp</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/whatsapp_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/whatsapp_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/whatsapp_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/whatsapp_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/whatsapp_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>YouTube</td><td>youtube</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/youtube_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/youtube_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/youtube_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/youtube_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/youtube_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
-        <tr><td>Zelle</td><td>zelle</td><td><img src='" . $smsi_plugin_dir_path . "assets/png/hz/150w/zelle_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/sq/150w/zelle_logo_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-c/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-b/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-light-bg'></td><td><img src='" . $smsi_plugin_dir_path . "assets/png/ic-w/150w/zelle_icon_150px.png' class='smsi-icon smsi-icon-dark-bg'></td></tr>
+        {$platform_list_html}
         </table>
     ";
     echo wp_kses_post($icon_preview_page_html);

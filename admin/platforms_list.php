@@ -1,52 +1,7 @@
 <?php
-// Define an array of all supported platforms
-$supported_platforms = [
-    'behance' => 'Behance',
-    'bitchute' => 'Bitchute',
-    'cashapp' => 'CashApp',
-    'clouthub' => 'CloutHub',
-    'digg' => 'Digg',
-    'discord' => 'Discord',
-    'facebook' => 'Facebook',
-    'fiverr' => 'Fiverr',
-    'gab' => 'Gab',
-    'github' => 'GitHub',
-    'givesendgo' => 'GiveSendGo',
-    'instagram' => 'Instagram',
-    'linkedin' => 'LinkedIn',
-    'linktree' => 'Linktree',
-    'locals' => 'Locals',
-    'mastodon' => 'Mastodon',
-    'minds' => 'Minds',
-    'myspace' => 'MySpace',
-    'odysee' => 'Odysee',
-    'parler' => 'Parler',
-    'patreon' => 'Patreon',
-    'paypal' => 'PayPal',
-    'pinterest' => 'Pinterest',
-    'publicsq' => 'Public Square',
-    'quora' => 'Quora',
-    'reddit' => 'Reddit',
-    'rokfin' => 'Rokfin',
-    'rumble' => 'Rumble',
-    'snapchat' => 'Snapchat',
-    'substack' => 'Substack',
-    'telegram' => 'Telegram',
-    'tiktok' => 'TikTok',
-    'truth_social' => 'Truth Social',
-    'twitch' => 'Twitch',
-    'twitter_x' => 'X (formerly Twitter)',
-    'unite' => 'Unite',
-    'venmo' => 'Venmo',
-    'vimeo' => 'Vimeo',
-    'vk' => 'VK',
-    'whatsapp' => 'WhatsApp',
-    'youtube' => 'YouTube',
-    'zelle' => 'Zelle'
-];
 
 function smsi_platform_setup() {
-    global $supported_platforms;
+    $supported_platforms = smsi_get_platform_list();
     
     add_settings_section(
         'show_my_social_icons_platform_settings',
@@ -71,7 +26,7 @@ function smsi_platform_setup() {
         'show_my_social_icons_platform_settings'
     );
 
-    foreach ($supported_platforms as $platform_id => $platform_name) {
+    foreach ($supported_platforms as $platform_id => $platform) {
         register_setting('show_my_social_icons_all_settings', "{$platform_id}_url", 'esc_url_raw');
         register_setting('show_my_social_icons_all_settings', "{$platform_id}_order", 'smsi_validate_order');
     }
@@ -83,19 +38,19 @@ function smsi_platform_search_callback() {
 }
 
 function smsi_platform_fields_callback() {
-    global $supported_platforms;
+    $supported_platforms = smsi_get_platform_list();
     echo '<div id="smsi-platform-container">';
     
     $set_platforms = [];
     $unset_platforms = [];
     
-    foreach ($supported_platforms as $platform_id => $platform_name) {
+    foreach ($supported_platforms as $platform_id => $platform) {
         $url = get_option("{$platform_id}_url", '');
-        $order = get_option("{$platform_id}_order", 0);
+        $order = get_option("{$platform_id}_order", $platform['default_order']);
         
         $platform_data = [
             'id' => $platform_id,
-            'name' => $platform_name,
+            'name' => isset($platform['label']) ? $platform['label'] : ucfirst($platform_id),
             'url' => $url,
             'order' => $order
         ];
