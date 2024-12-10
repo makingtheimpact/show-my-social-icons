@@ -116,6 +116,12 @@ If the CSS styles are not being loaded, you can try the following:
 
 ## Changelog
 
+### 1.0.75
+- Added GitHub Updater to check for updates.
+
+### 1.0.74
+- Added support for additional platforms.
+
 ### 1.0.73
 - Added shortcode preview feature.
 - Fixed bugs and other issues with settings and displaying the icons.

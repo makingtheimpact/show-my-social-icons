@@ -3,11 +3,11 @@
  * Plugin Name: Show My Social Icons
  * Plugin URI: https://makingtheimpact.com
  * Description: Display customizable social media icons anywhere on your WordPress site using shortcodes, widgets, Gutenberg blocks, or in the main menu.
- * Version: 1.0.74
+ * Version: 1.0.75  
  * Requires at least: 5.0
  * Requires PHP: 7.0
  * Tested up to: 6.6.2
- * Stable tag: 1.0.74
+ * Stable tag: 1.0.75
  * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: show-my-social-icons
@@ -38,6 +38,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/utilities.php';
 require_once plugin_dir_path(__FILE__) . 'public/shortcodes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-all-icons-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-single-icon-widget.php';
+require_once plugin_dir_path(__FILE__) . 'includes/github-updater.php';
 
 define('SMSI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SMSI_PLUGIN_FILE', __FILE__);

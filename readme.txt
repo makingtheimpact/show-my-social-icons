@@ -3,7 +3,7 @@ Contributors: Making The Impact LLC
 Tags: social media, icons, menu, widget, gutenberg
 Requires at least: 5.0
 Tested up to: 6.6.2
-Stable tag: 1.0.74
+Stable tag: 1.0.75
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -83,6 +83,10 @@ You can contact us at customerservice@makingtheimpact.com.
 8. Preview of icons displayed in a widget area.
 
 == Changelog ==
+
+
+= 1.0.75 =
+* Added GitHub Updater to check for updates.
 
 = 1.0.74 =
 * Added support for additional platforms.
