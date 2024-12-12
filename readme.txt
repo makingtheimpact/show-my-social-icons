@@ -23,6 +23,7 @@ Key Features:
 * Drag-and-drop ordering of icons
 * Search functionality to quickly find platforms
 * Individual icon display option
+* Select icons shortcode to display a group of icons of your choice
 * Force load styles option to ensure icons are displayed correctly
 
 Supported Platforms:
@@ -43,6 +44,18 @@ You can display the icons in the main menu, widget areas, header, footer, or any
 = How do I use the shortcodes? =
 
 Use `[show_my_social_icons]` to display all icons, or `[my_social_icon platform="facebook"]` to display a single icon.
+
+Use `[select_my_social_icons platforms="facebook,twitter,instagram"]` to display a group of icons of your choice.
+
+The select shortcode accepts these attributes:
+* platforms - Comma-separated list of platform IDs to display (e.g., "facebook,twitter,instagram")
+* type - Specifies the icon type (SVG or PNG)
+* size - Icon size (e.g., '30px', '50px')
+* style - Icon style (e.g., 'Icon only full color')
+* alignment - Text alignment (Left, Center, Right)
+* spacing - Space between icons (e.g., '10px')
+* custom_color - Icon color for SVG icons
+* margin_top/right/bottom/left - Container margin values
 
 = Can I customize the appearance of the icons? =
 
@@ -84,6 +97,9 @@ You can contact us at customerservice@makingtheimpact.com.
 
 == Changelog ==
 
+= 1.0.76 =
+* Added support for the select_my_social_icons shortcode, block, and widget.
+* Fixed alignment issue with the single icon inline display.
 
 = 1.0.75 =
 * Added GitHub Updater to check for updates.

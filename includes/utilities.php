@@ -224,3 +224,7 @@ function smsi_get_file_contents($file_path) {
 }
 
 register_setting('show_my_social_icons', 'smsi_force_load_styles', 'intval');
+
+function smsi_sanitize_boolean($input) {
+    return filter_var($input, FILTER_VALIDATE_BOOLEAN);
+}

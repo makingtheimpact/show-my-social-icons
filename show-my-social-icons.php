@@ -3,11 +3,11 @@
  * Plugin Name: Show My Social Icons
  * Plugin URI: https://makingtheimpact.com
  * Description: Display customizable social media icons anywhere on your WordPress site using shortcodes, widgets, Gutenberg blocks, or in the main menu.
- * Version: 1.0.75  
+ * Version: 1.0.76  
  * Requires at least: 5.0
  * Requires PHP: 7.0
  * Tested up to: 6.6.2
- * Stable tag: 1.0.75
+ * Stable tag: 1.0.76
  * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: show-my-social-icons
@@ -29,6 +29,10 @@ if (!defined('WPINC')) {
     die;
 }
 
+if (!defined('SMSI_VERSION')) {
+    define('SMSI_VERSION', '1.0.76');
+}
+
 /**
  * Require necessary files
  */
@@ -38,6 +42,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/utilities.php';
 require_once plugin_dir_path(__FILE__) . 'public/shortcodes.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-all-icons-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-single-icon-widget.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-smsi-select-icons-widget.php';
 require_once plugin_dir_path(__FILE__) . 'includes/github-updater.php';
 
 define('SMSI_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -113,6 +118,28 @@ function smsi_register_block() {
             'marginBottom'  => array('type' => 'string', 'default' => '0px'),
             'marginLeft'    => array('type' => 'string', 'default' => '0px'),
             'linkMargins'   => array('type' => 'boolean', 'default' => false),
+            'inline'        => array('type' => 'boolean', 'default' => false),
+        ),
+    ));
+
+    // Register the "Select Icons" dynamic block
+    register_block_type('show-my-social-icons/select-icons', array(
+        'editor_script'   => 'smsi-block-editor',
+        'editor_style'    => 'smsi-block-editor',
+        'style'           => 'smsi-frontend-styles',
+        'render_callback' => 'smsi_render_select_icons_block',
+        'attributes'      => array(
+            'platforms'    => array('type' => 'array', 'default' => array()),
+            'iconType'     => array('type' => 'string', 'default' => 'PNG'),
+            'iconSize'     => array('type' => 'string', 'default' => '30px'),
+            'iconStyle'    => array('type' => 'string', 'default' => 'Icon only full color'),
+            'iconAlignment'=> array('type' => 'string', 'default' => 'Center'),
+            'customColor'  => array('type' => 'string', 'default' => '#000000'),
+            'marginTop'    => array('type' => 'string', 'default' => '0px'),
+            'marginRight'  => array('type' => 'string', 'default' => '0px'),
+            'marginBottom' => array('type' => 'string', 'default' => '0px'),
+            'marginLeft'   => array('type' => 'string', 'default' => '0px'),
+            'inline'       => array('type' => 'boolean', 'default' => false),
         ),
     ));
 
@@ -131,6 +158,7 @@ function smsi_register_widgets() {
     global $wp_widget_factory;
     $wp_widget_factory->register('SMSI_All_Icons_Widget');
     register_widget('SMSI_Single_Icon_Widget');
+    register_widget('SMSI_Select_Icons_Widget');
 }
 add_action('widgets_init', 'smsi_register_widgets');
 
@@ -157,13 +185,43 @@ function smsi_render_single_icon_block($attributes) {
     $icon_style = isset($attributes['iconStyle']) ? $attributes['iconStyle'] : 'Icon only full color';
     $icon_alignment = isset($attributes['iconAlignment']) ? $attributes['iconAlignment'] : 'Center';
     $custom_color = isset($attributes['customColor']) ? $attributes['customColor'] : '#000000';
+    $inline = isset($attributes['inline']) ? $attributes['inline'] : false;
 
     $margin_top = smsi_sanitize_unit_value(isset($attributes['marginTop']) ? $attributes['marginTop'] : '0');
     $margin_right = smsi_sanitize_unit_value(isset($attributes['marginRight']) ? $attributes['marginRight'] : '0');
     $margin_bottom = smsi_sanitize_unit_value(isset($attributes['marginBottom']) ? $attributes['marginBottom'] : '0');
     $margin_left = smsi_sanitize_unit_value(isset($attributes['marginLeft']) ? $attributes['marginLeft'] : '0');
 
-    return do_shortcode("[my_social_icon platform=\"$platform\" type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\" custom_color=\"$custom_color\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\"]");
+    return do_shortcode("[my_social_icon platform=\"$platform\" type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\" custom_color=\"$custom_color\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\" inline=\"$inline\"]");
+}
+
+function smsi_render_select_icons_block($attributes) {
+    $platforms = isset($attributes['platforms']) ? (array) $attributes['platforms'] : [];
+    $platform_ids = array_map(function($platform) {
+        return $platform['id'];
+    }, $platforms);
+    
+    //error_log('SMSI: Platforms: ' . print_r($platforms, true));
+    //error_log('SMSI: Platform IDs: ' . print_r($platform_ids, true));
+
+    $platforms_string = implode(',', $platform_ids); // Convert array to comma-separated string    
+
+    //error_log('SMSI: Platforms: ' . $platforms_string);
+
+    $icon_type = isset($attributes['iconType']) ? $attributes['iconType'] : 'PNG';
+    $icon_size = isset($attributes['iconSize']) ? $attributes['iconSize'] : '30px';
+    $icon_style = isset($attributes['iconStyle']) ? $attributes['iconStyle'] : 'Icon only full color';
+    $icon_alignment = isset($attributes['iconAlignment']) ? $attributes['iconAlignment'] : 'Center';
+    $custom_color = isset($attributes['customColor']) ? $attributes['customColor'] : '#000000';
+    $spacing = isset($attributes['spacing']) ? $attributes['spacing'] : '10px';
+
+    $margin_top = isset($attributes['marginTop']) ? $attributes['marginTop'] : '0px';
+    $margin_right = isset($attributes['marginRight']) ? $attributes['marginRight'] : '0px';
+    $margin_bottom = isset($attributes['marginBottom']) ? $attributes['marginBottom'] : '0px';
+    $margin_left = isset($attributes['marginLeft']) ? $attributes['marginLeft'] : '0px';
+
+    // Render the block using a shortcode
+    return do_shortcode("[select_my_social_icons platforms=\"$platforms_string\" type=\"$icon_type\" size=\"$icon_size\" style=\"$icon_style\" alignment=\"$icon_alignment\" custom_color=\"$custom_color\" margin_top=\"$margin_top\" margin_right=\"$margin_right\" margin_bottom=\"$margin_bottom\" margin_left=\"$margin_left\" spacing=\"$spacing\"]");
 }
 
 /**
@@ -205,6 +263,13 @@ function smsi_register_rest_route() {
             return current_user_can('edit_posts'); // Adjust capabilities as needed
         },
     ));
+    register_rest_route('smsi/v1', '/active-platforms', array(
+        'methods'             => 'GET',
+        'callback'            => 'smsi_get_platforms',
+        'permission_callback' => function () {
+            return current_user_can('edit_posts');
+        },
+    ));
 }
 add_action('rest_api_init', 'smsi_register_rest_route');
 
@@ -215,12 +280,18 @@ add_action('rest_api_init', 'smsi_register_rest_route');
  */
 function smsi_get_platforms() {
     $platforms = smsi_get_platform_list();
-    // return list of platforms that have a URL set
+    // return list of platforms that have a URL set but return the platform_id and label
     $platforms_with_url = array_filter($platforms, function($platform) {
         $platform_url = get_option($platform['platform_id'] . '_url', '');
         return !empty($platform_url);
     });
-    return $platforms_with_url;
+    // return the platform_id and label
+    return array_map(function($platform) {
+        return [
+            'id' => $platform['platform_id'],
+            'name' => $platform['label'],
+        ];
+    }, $platforms_with_url);
 }
 
 /**
@@ -277,6 +348,29 @@ function smsi_enqueue_styles() {
     }
 }
 add_action('wp_enqueue_scripts', 'smsi_enqueue_styles');
+
+/**
+ * Enqueue frontend scripts and styles.
+ */
+function smsi_enqueue_frontend_scripts() {
+    // Only enqueue if not in admin
+    if (!is_admin()) {
+        // Add console log to verify function is running
+        error_log('Attempting to enqueue frontend script');
+        
+        $script_path = plugin_dir_url(__FILE__) . 'assets/js/frontend.js';
+        error_log('Script path: ' . $script_path);
+        
+        wp_enqueue_script(
+            'smsi-frontend-script',
+            $script_path,
+            array('jquery'), 
+            SMSI_VERSION,
+            true
+        );
+    }
+}
+add_action('wp_enqueue_scripts', 'smsi_enqueue_frontend_scripts', 10);
 
 /**
  * Enqueue scripts and styles for the admin area.
@@ -459,3 +553,4 @@ function smsi_add_icons_to_menu($items, $args) {
     return $items;
 }
 add_filter('wp_nav_menu_items', 'smsi_add_icons_to_menu', 10, 2);
+

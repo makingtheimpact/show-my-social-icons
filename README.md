@@ -86,12 +86,14 @@ You can also use the shortcodes to display the icons anywhere on your website.
 
 - `[show_my_social_icons]`: Displays all configured social media icons
 - `[my_social_icon platform="facebook"]`: Displays a single social media icon
+- `[select_my_social_icons platforms="facebook,twitter,instagram"]`: Displays only the specified social media icons
 
 ### Documentation
 
 The plugin provides two Gutenberg blocks and two widgets:
 - Social Media Icons (All) - Displays all configured social media icons
 - Social Media Icons (Single) - Displays a single social media icon
+- Social Media Icons (Select) - Displays only the selected social media icons
 
 SVG icons are only available in black, white, or custom color.
 PNG icons are available in full color (proper logo branding color), black, or white. The logos are available in horizontal and square formats.
@@ -115,6 +117,10 @@ If the CSS styles are not being loaded, you can try the following:
 3. Clear the browser cache.
 
 ## Changelog
+
+### 1.0.76
+- Added support for the select_my_social_icons shortcode, block, and widget.
+- Fixed alignment issue with the single icon inline display.
 
 ### 1.0.75
 - Added GitHub Updater to check for updates.

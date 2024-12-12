@@ -50,6 +50,11 @@
     width: 100%;
 }
 
+.smsi-single-icon-inline {
+    display: inline-block;
+    width: auto;
+}
+
 .smsi-single-icon-wrapper[style*="text-align: left"] {
     text-align: left;
 }
@@ -69,6 +74,22 @@
 .smsi-single-icon-wrapper svg {
     width: 100%;
     height: auto;
+}
+
+.smsi-icons-container {
+    display: block;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.smsi-single-icon-inline {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Ensure proper spacing between icons */
+.smsi-single-icon-inline:not(:last-child) {
+    margin-right: 10px;
 }
 
 /* Default hover effect */

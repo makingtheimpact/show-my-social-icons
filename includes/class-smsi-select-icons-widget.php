@@ -1,18 +1,18 @@
-<?php
+<?php 
 /**
- * SMSI Single Icon Widget
+ * SMSI Select Icons Widget
  *
- * This file contains the SMSI Single Icon Widget class.
+ * This file contains the SMSI Select Icons Widget class.
  *
  * @package ShowMySocialIcons
  */
 
-class SMSI_Single_Icon_Widget extends WP_Widget {
+class SMSI_Select_Icons_Widget extends WP_Widget {
     public function __construct() {
         parent::__construct(
-            'smsi_single_icon_widget',
-            '(Single Icon) Show My Social Icon',
-            array('description' => 'Display a single social media icon'),
+            'smsi_select_icons_widget',
+            '(Select Icons) Show My Social Icons',
+            array('description' => 'Display selected social media icons'),
             array('customize_selective_refresh' => true)
         );
     }
@@ -26,26 +26,31 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
     public function widget($args, $instance) {
         echo $args['before_widget'];
 
-        $platform = isset($instance['platform']) ? esc_attr($instance['platform']) : '';
-        
+        // Ensure $platforms is an array
+        $platforms = isset($instance['platforms']) && is_array($instance['platforms']) ? $instance['platforms'] : explode(',', $instance['platforms']);
+        error_log('Rendering platforms: ' . print_r($platforms, true));
+
+        // Convert $platforms array to a comma-separated string
+        $platforms_string = implode(',', $platforms);
+
         // Extract and sanitize variables
         $icon_type = isset($instance['icon_type']) ? esc_attr($instance['icon_type']) : 'PNG';
         $icon_alignment = isset($instance['icon_alignment']) ? esc_attr($instance['icon_alignment']) : 'Center';
         $custom_color = isset($instance['custom_color']) ? esc_attr($instance['custom_color']) : '#000000';
         $icon_size = isset($instance['icon_size']) ? smsi_sanitize_unit_value($instance['icon_size']) : '30px';
         $icon_style = isset($instance['icon_style']) ? esc_attr($instance['icon_style']) : 'Icon only full color';
-        $inline = isset($instance['inline']) ? (bool) $instance['inline'] : false;
+        $spacing = isset($instance['spacing']) ? smsi_sanitize_unit_value($instance['spacing']) : '10px';
         
         // Split margin values into value and unit
         $margin_top = isset($instance['margin_top']) ? smsi_sanitize_unit_value($instance['margin_top']) : '0px';
         $margin_right = isset($instance['margin_right']) ? smsi_sanitize_unit_value($instance['margin_right']) : '0px';
         $margin_bottom = isset($instance['margin_bottom']) ? smsi_sanitize_unit_value($instance['margin_bottom']) : '0px';
         $margin_left = isset($instance['margin_left']) ? smsi_sanitize_unit_value($instance['margin_left']) : '0px';
-
+        $spacing = smsi_sanitize_unit_value($instance['spacing']);
 
         echo do_shortcode(sprintf(
-            '[my_social_icon platform="%s" type="%s" size="%s" style="%s" alignment="%s" custom_color="%s" margin_top="%s" margin_right="%s" margin_bottom="%s" margin_left="%s"]',
-            $platform,
+            '[select_my_social_icons platforms="%s" type="%s" size="%s" style="%s" alignment="%s" custom_color="%s" margin_top="%s" margin_right="%s" margin_bottom="%s" margin_left="%s" spacing="%s"]',
+            $platforms_string,
             $icon_type,
             $icon_size,
             $icon_style,
@@ -55,65 +60,71 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
             $margin_right,
             $margin_bottom,
             $margin_left,
-            $inline
+            $spacing
         ));
         echo wp_kses_post($args['after_widget']);
     }
 
     public function form($instance) {
         $widget_id = isset($this->id) ? $this->id : '';
+        error_log('Widget ID: ' . $widget_id);
 
         $defaults = [
-            'platform'       => '',
+            'platforms'      => [],
             'icon_type'      => 'PNG',
             'icon_size'      => '30px',
             'icon_style'     => 'Icon only full color',
             'icon_alignment' => 'Center',
             'custom_color'   => '#000000',
+            'spacing'        => '10px',
             'margin_top'     => '0px',
             'margin_right'   => '0px',
             'margin_bottom'  => '0px',
             'margin_left'    => '0px',
             'link_margins'   => false,
-            'inline'         => false,
         ];
-        // Merge user-defined settings with defaults
         $instance = wp_parse_args((array) $instance, $defaults);
 
+        $platforms = smsi_get_platform_list();
+        $selected_platforms = isset($instance['platforms']) ? $instance['platforms'] : [];
+
         // Extract variables for easy access
-        $platform           = esc_attr($instance['platform'] ?? '');
         $icon_type          = esc_attr($instance['icon_type']);
         $icon_size          = esc_attr($instance['icon_size']);
         $icon_style         = esc_attr($instance['icon_style']);
         $icon_alignment     = esc_attr($instance['icon_alignment']);
         $custom_color       = esc_attr($instance['custom_color']);
+        $spacing            = esc_attr($instance['spacing']);
         $margin_top         = esc_attr($instance['margin_top']);
         $margin_right       = esc_attr($instance['margin_right']);
         $margin_bottom      = esc_attr($instance['margin_bottom']);
         $margin_left        = esc_attr($instance['margin_left']);
         $link_margins       = esc_attr($instance['link_margins']);
-        $inline             = esc_attr($instance['inline']);
-        $platforms = smsi_get_platform_list();
+
         ?>
-        <p>
-            <label for="<?php echo esc_attr($this->get_field_id('platform')); ?>">Platform:</label>
-            <select class="widefat" id="<?php echo esc_attr($this->get_field_id('platform')); ?>" name="<?php echo esc_attr($this->get_field_name('platform')); ?>">
-                <?php foreach ($platforms as $key => $platform_info) : ?>
-                    <option value="<?php echo esc_attr($key); ?>" <?php selected($platform, $key); ?>><?php echo esc_html($platform_info['label']); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </p>
+
+        <!-- Dropdown to select platforms -->
+        <div class="smsi-widget <?php echo esc_attr($widget_id); ?>">
+            <p>Select Platforms:</p>
+            <?php foreach ($platforms as $key => $platform_info) { ?>
+                <label>
+                    <input type="checkbox" class="smsi-platform-checkbox" name="<?php echo esc_attr($this->get_field_name('platforms')); ?>[]" value="<?php echo esc_attr($key); ?>" <?php checked(in_array($key, $selected_platforms)); ?>>
+                    <?php echo esc_html($platform_info['label']); ?>
+                </label><br>
+            <?php } ?>
+        </div>
+
         <p>
             <label for="<?php echo esc_attr($this->get_field_id('icon_type')); ?>">Icon Type:</label>
             <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_type')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_type')); ?>">
-                <option value="PNG" <?php selected($icon_type, 'PNG'); ?>>PNG</option>
                 <option value="SVG" <?php selected($icon_type, 'SVG'); ?>>SVG</option>
+                <option value="PNG" <?php selected($icon_type, 'PNG'); ?>>PNG</option>
             </select>
         </p>
         <p>
             <label for="<?php echo esc_attr($this->get_field_id('icon_size')); ?>">Icon Size:</label>
-            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_size')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_size')); ?>" type="text" value="<?php echo esc_attr($icon_size); ?>" />
-        </p>        
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_size')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_size')); ?>" type="text" value="<?php echo esc_attr($icon_size); ?>">
+        </p>
         <p>
             <label for="<?php echo esc_attr($this->get_field_id('icon_style')); ?>">Icon Style:</label>
             <select class="widefat" id="<?php echo esc_attr($this->get_field_id('icon_style')); ?>" name="<?php echo esc_attr($this->get_field_name('icon_style')); ?>">
@@ -143,9 +154,10 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
                    placeholder="#000000" />
         </p>
         <p>
-            <label>Display Inline:</label>
-            <input type="checkbox" id="<?php echo esc_attr($this->get_field_id('inline')); ?>" name="<?php echo esc_attr($this->get_field_name('inline')); ?>" <?php checked($inline, true); ?> />
+            <label for="<?php echo esc_attr($this->get_field_id('spacing')); ?>">Icon Spacing:</label>
+            <input class="widefat" id="<?php echo esc_attr($this->get_field_id('spacing')); ?>" name="<?php echo esc_attr($this->get_field_name('spacing')); ?>" type="text" value="<?php echo esc_attr($spacing); ?>">
         </p>
+        <!-- Container Margins -->
         <p>
             <label>Container Margins:</label>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -198,30 +210,34 @@ class SMSI_Single_Icon_Widget extends WP_Widget {
         <p>
             <button type="button" class="button" id="<?php echo esc_attr($this->get_field_id('link_margins')); ?>" <?php echo $link_margins ? 'data-linked="true"' : 'data-linked="false"'; ?>><?php echo $link_margins ? 'Unlink Margins' : 'Link Margins'; ?></button>
         </p>
-    <?php
+        <?php
     }
 
     public function update($new_instance, $old_instance) {
         $instance = [];
+    
+        // Parse platforms as an array from the comma-separated string
+        $instance['platforms'] = (!empty($new_instance['platforms']) && is_array($new_instance['platforms'])) ? array_map('sanitize_text_field', $new_instance['platforms']) : [];
 
-        $instance = array();
-        $instance['platform']        = isset($new_instance['platform']) ? sanitize_text_field($new_instance['platform']) : '';
-        $instance['icon_type']       = isset($new_instance['icon_type']) ? sanitize_text_field($new_instance['icon_type']) : 'PNG';
-        $instance['icon_size']       = isset($new_instance['icon_size']) ? smsi_sanitize_unit_value($new_instance['icon_size']) : '30px';
-        $instance['icon_style']      = isset($new_instance['icon_style']) ? sanitize_text_field($new_instance['icon_style']) : 'Icon only full color';
-        $instance['icon_alignment']  = isset($new_instance['icon_alignment']) ? sanitize_text_field($new_instance['icon_alignment']) : 'Center';
-        if (isset($new_instance['custom_color']) && $new_instance['icon_type'] === 'SVG') {
-            $instance['custom_color'] = sanitize_hex_color($new_instance['custom_color']);
-        } else {
-            $instance['custom_color'] = '#000000';
-        }
-        $instance['inline']          = isset($new_instance['inline']) ? (bool) $new_instance['inline'] : false;
-        $instance['margin_top']      = isset($new_instance['margin_top']) ? smsi_sanitize_unit_value($new_instance['margin_top']) : '0px';
-        $instance['margin_right']    = isset($new_instance['margin_right']) ? smsi_sanitize_unit_value($new_instance['margin_right']) : '0px';
-        $instance['margin_bottom']   = isset($new_instance['margin_bottom']) ? smsi_sanitize_unit_value($new_instance['margin_bottom']) : '0px';
-        $instance['margin_left']     = isset($new_instance['margin_left']) ? smsi_sanitize_unit_value($new_instance['margin_left']) : '0px';
+        error_log('Updated platforms: ' . print_r($instance['platforms'], true));
+    
+        $instance['icon_type'] = (!empty($new_instance['icon_type'])) ? wp_strip_all_tags($new_instance['icon_type']) : 'PNG';
+        $instance['icon_size'] = (!empty($new_instance['icon_size'])) ? smsi_sanitize_unit_value($new_instance['icon_size']) : '30px';
+        $instance['icon_style'] = (!empty($new_instance['icon_style'])) ? wp_strip_all_tags($new_instance['icon_style']) : 'Icon only full color';
+        $instance['icon_alignment'] = (!empty($new_instance['icon_alignment'])) ? wp_strip_all_tags($new_instance['icon_alignment']) : 'Center';
+        $instance['custom_color'] = (isset($new_instance['custom_color'])) ? sanitize_hex_color($new_instance['custom_color']) : '#000000';
+        $instance['spacing'] = (!empty($new_instance['spacing'])) ? smsi_sanitize_unit_value($new_instance['spacing']) : '10px';
+        $instance['margin_top'] = (!empty($new_instance['margin_top'])) ? smsi_sanitize_unit_value($new_instance['margin_top']) : '0px';
+        $instance['margin_right'] = (!empty($new_instance['margin_right'])) ? smsi_sanitize_unit_value($new_instance['margin_right']) : '0px';
+        $instance['margin_bottom'] = (!empty($new_instance['margin_bottom'])) ? smsi_sanitize_unit_value($new_instance['margin_bottom']) : '0px';
+        $instance['margin_left'] = (!empty($new_instance['margin_left'])) ? smsi_sanitize_unit_value($new_instance['margin_left']) : '0px';
         $instance['link_margins'] = isset($new_instance['link_margins']) ? (bool) $new_instance['link_margins'] : false;
-
+    
         return $instance;
     }
 }
+
+function smsi_register_select_icons_widget() {
+    register_widget('SMSI_Select_Icons_Widget');
+}
+add_action('widgets_init', 'smsi_register_select_icons_widget');

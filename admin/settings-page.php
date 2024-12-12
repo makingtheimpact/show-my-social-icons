@@ -225,6 +225,9 @@ function smsi_setup_icon_style_settings() {
                 <option value='style3'" . selected($value, 'style3', false) . ">Rotate</option>
               </select>";
     }
+
+    add_settings_field('icon_inline', 'Display Icons Inline', 'smsi_icon_inline_callback', 'show_my_social_icons_advanced', 'show_my_social_icons_settings_section');
+    register_setting('show_my_social_icons_advanced_settings', 'icon_inline', 'smsi_sanitize_boolean');
 }
 
 /**
@@ -743,6 +746,12 @@ function smsi_faqs_tab_content() {
     <p>If you need a social media platform added, please contact us at <a href='mailto:customerservice@maketheimpact.com'>customerservice@maketheimpact.com</a>.</p>
     <h3>The icons are not displaying, what do I do?</h3>
     <p>Check the troubleshooting section for possible solutions. If you have tried those solutions and the icons are still not displaying correctly, please contact us at <a href='mailto:customerservice@maketheimpact.com'>customerservice@maketheimpact.com</a>.</p>
+    <h3>How do I display the icons inline?</h3>
+    <p>You can display the icons inline by enabling the <i>Display Inline</i> option in the block or widget settings.</p>
+    <h3>Can I upload my own icons?</h3>
+    <p>Not currently. We are working on a feature to allow you to upload your own icons.</p>
+    <h3>I want to display multiple icons side by side, how do I do this?</h3>
+    <p>You can use the All Icons shortcode, widget, or block, or you can use the Single Icon version and enable the <i>Display Inline</i> option in the shortcode, block, or widget settings.</p>
     ";
     echo wp_kses_post($docs_faq_content);
 }
@@ -773,6 +782,8 @@ function smsi_troubleshooting_tab_content() {
         <li>Clear the browser cache.</li>
         <li>Check for plugin or theme conflicts. Sometimes other plugins or themes can interfere with the icons displaying correctly.</li>
     </ul>
+    <h3>The single icons are stacking and not displaying side by side. How do I fix this?</h3>
+    <p>If the single icons are stacking and not displaying side by side, you can enable the <i>Display Inline</i> option in the block or widget settings.</p>
     <p>If you have checked all of the above and the icons are still not displaying correctly, please contact us at <a href='mailto:customerservice@maketheimpact.com'>customerservice@maketheimpact.com</a>.</p>
     ";
     echo wp_kses_post($docs_troubleshooting_content);
@@ -795,7 +806,7 @@ function smsi_shortcodes_tab_content() {
 
     <p>Shortcodes are used to display the social media icons on your website. You can use the shortcodes to display the icons in your posts, pages, or custom post types.</p>
 
-    <p>The shortcodes are <strong>[show_my_social_icons]</strong> and <strong>[my_social_icon]</strong>.</p>
+    <p>The shortcodes are <strong>[show_my_social_icons]</strong>, <strong>[my_social_icon]</strong>, and <strong>[select_my_social_icons]</strong>.</p>
 
     <p>The shortcodes have different attributes that you can use to customize the icons. The attributes are:</p>
 
@@ -883,16 +894,37 @@ function smsi_shortcodes_tab_content() {
         <li><strong>style</strong> - Specifies the style of the icons (e.g., 'Icon only full color', 'Full logo horizontal'). See above for available options according to icon type. Default is 'Icon only full color'.</li>
         <li><strong>alignment</strong> - Text alignment (Left, Center, Right). Default is 'Center'.</li>
         <li><strong>custom_color (SVG only)</strong> - Icon color. Default is '#000'.</li>
+        <li><strong>inline</strong> - Determines if the icon should be displayed inline. Accepts 'true' or 'false'. Default is 'false'.</li>
         <li><strong>margin_top</strong> - Specifies the margin-top value (e.g., '10px', '1em').</li>
         <li><strong>margin_bottom</strong> - Specifies the margin-bottom value (e.g., '10px', '1em').</li>
         <li><strong>margin_left</strong> - Specifies the margin-left value (e.g., '10px', '1em').</li>
         <li><strong>margin_right</strong> - Specifies the margin-right value (e.g., '10px', '1em').</li>
     </ul>
     <div class='copy-container'>
-        <textarea id='shortcode2' class='copy-text' style='width: 90%; height: 50px;'>[my_social_icon platform=\"facebook\" type=\"SVG\" size=\"50px\" style=\"Icon only custom color\" custom_color=\"#FFA500\" alignment=\"Center\"]</textarea><br>
+        <textarea id='shortcode2' class='copy-text' style='width: 90%; height: 50px;'>[my_social_icon platform=\"facebook\" type=\"SVG\" size=\"50px\" style=\"Icon only custom color\" custom_color=\"#FFA500\" alignment=\"Center\" inline=\"true\"]</textarea><br>
         <button class='copy-button'>Copy Shortcode</button><button class='preview-button'>Preview Shortcode</button><br><br>
     </div>
     <div class='shortcode-preview' id='preview2'></div>
+
+    <h3><strong>[select_my_social_icons]</strong></h3>
+    <p>Displays a group of social icons based on the platforms specified. Attributes include:</p>
+    <ul>
+        <li><strong>platforms</strong> - Comma-separated list of platform IDs to display (e.g., 'facebook,twitter,instagram').</li>
+        <li><strong>size</strong> - Specifies the size of the icons (e.g., '100px', '200px', '50%', '100%'). Default is '30px'.</li>
+        <li><strong>style</strong> - Specifies the style of the icons (e.g., 'Icon only full color', 'Full logo horizontal'). See above for available options according to icon type. Default is 'Icon only full color'.</li>
+        <li><strong>alignment</strong> - Aligns the icons (Left, Center, Right). Default is 'Center'.</li>
+        <li><strong>spacing</strong> - Specifies the spacing between icons (e.g., '10px', '1em').</li>
+        <li><strong>custom_color (SVG only)</strong> - Specifies the color of the icons (e.g., 'red', '#000', '#fff'). Default is '#000'.</li>
+        <li><strong>margin_top</strong> - Specifies the margin-top value (e.g., '10px', '1em').</li>
+        <li><strong>margin_bottom</strong> - Specifies the margin-bottom value (e.g., '10px', '1em').</li>
+        <li><strong>margin_left</strong> - Specifies the margin-left value (e.g., '10px', '1em').</li>
+        <li><strong>margin_right</strong> - Specifies the margin-right value (e.g., '10px', '1em').</li>
+    </ul>   
+    <div class='copy-container'>
+        <textarea id='shortcode3' class='copy-text' style='width: 90%; height: 50px;'>[select_my_social_icons platforms=\"facebook,twitter,instagram\" size=\"30px\" style=\"Icon only full color\" alignment=\"Center\" spacing=\"10px\"]</textarea><br>
+        <button class='copy-button'>Copy Shortcode</button><button class='preview-button'>Preview Shortcode</button><br><br>
+    </div>
+    <div class='shortcode-preview' id='preview3'></div>
 
     <h2><strong>Platforms Supported</strong></h2>
     <p>Below is a list of the platforms this plugin currently supports. Use the platform ID in the shortcode attributes.</p>
@@ -1017,3 +1049,22 @@ function smsi_save_platform_url() {
     }
 }
 add_action('wp_ajax_smsi_save_platform_url', 'smsi_save_platform_url');
+
+function smsi_icon_inline_callback() {
+    $value = get_option('icon_inline', false);
+    echo '<input type="checkbox" name="icon_inline" value="1"' . checked(1, $value, false) . ' />';
+    echo "<span class='description'>Enable to display icons inline by default.</span>";
+}
+
+function smsi_register_settings() {
+    add_settings_field(
+        'icon_inline',
+        'Display Icons Inline',
+        'smsi_icon_inline_callback',
+        'show_my_social_icons_advanced',
+        'show_my_social_icons_settings_section'
+    );
+    register_setting('show_my_social_icons_advanced_settings', 'icon_inline', 'smsi_sanitize_boolean');
+}
+
+add_action('admin_init', 'smsi_register_settings');
