@@ -28,7 +28,6 @@ class SMSI_Select_Icons_Widget extends WP_Widget {
 
         // Ensure $platforms is an array
         $platforms = isset($instance['platforms']) && is_array($instance['platforms']) ? $instance['platforms'] : explode(',', $instance['platforms']);
-        error_log('Rendering platforms: ' . print_r($platforms, true));
 
         // Convert $platforms array to a comma-separated string
         $platforms_string = implode(',', $platforms);
@@ -67,7 +66,6 @@ class SMSI_Select_Icons_Widget extends WP_Widget {
 
     public function form($instance) {
         $widget_id = isset($this->id) ? $this->id : '';
-        error_log('Widget ID: ' . $widget_id);
 
         $defaults = [
             'platforms'      => [],
@@ -218,8 +216,6 @@ class SMSI_Select_Icons_Widget extends WP_Widget {
     
         // Parse platforms as an array from the comma-separated string
         $instance['platforms'] = (!empty($new_instance['platforms']) && is_array($new_instance['platforms'])) ? array_map('sanitize_text_field', $new_instance['platforms']) : [];
-
-        error_log('Updated platforms: ' . print_r($instance['platforms'], true));
     
         $instance['icon_type'] = (!empty($new_instance['icon_type'])) ? wp_strip_all_tags($new_instance['icon_type']) : 'PNG';
         $instance['icon_size'] = (!empty($new_instance['icon_size'])) ? smsi_sanitize_unit_value($new_instance['icon_size']) : '30px';

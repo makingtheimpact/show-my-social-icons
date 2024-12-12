@@ -27,7 +27,7 @@ function smsi_check_for_updates($transient) {
 
     // Check if plugin file exists
     if (!file_exists($plugin_file)) {
-        error_log('Plugin file not found at: ' . $plugin_file);
+        error_log('SMSI Plugin: Plugin file not found at: ' . $plugin_file);
         set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
         return $transient;
     }
@@ -37,7 +37,7 @@ function smsi_check_for_updates($transient) {
     $current_version = $plugin_data['Version'];
 
     if (empty($current_version)) {
-        error_log('Could not determine current plugin version from: ' . $plugin_file);
+        error_log('SMSI Plugin: Could not determine current plugin version from: ' . $plugin_file);
         set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
         return $transient;
     }
@@ -60,14 +60,14 @@ function smsi_check_for_updates($transient) {
         );
 
         if (is_wp_error($response)) {
-            error_log('Update check failed: ' . $response->get_error_message());
+            error_log('SMSI Plugin: Update check failed: ' . $response->get_error_message());
             set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
             return $transient;
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code !== 200) {
-            error_log('Proxy server response code: ' . $response_code);
+            error_log('SMSI Plugin: Proxy server response code: ' . $response_code);
             set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
             return $transient;
         }
@@ -83,7 +83,7 @@ function smsi_check_for_updates($transient) {
 
         // Handle error response
         if (isset($update_data['error'])) {
-            error_log('Update server error: ' . $update_data['error']);
+            error_log('SMSI Plugin: Update server error: ' . $update_data['error']);
             set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
             return $transient;
         }
@@ -104,11 +104,11 @@ function smsi_check_for_updates($transient) {
                 set_transient('smsi_update_check', 'no_update', SMSI_UPDATE_CACHE_TIME);
             }
         } else {
-            error_log('Invalid response structure from proxy server: ' . $body);
+            error_log('SMSI Plugin: Invalid response structure from proxy server: ' . $body);
             set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
         }
     } catch (Exception $e) {
-        error_log('Exception in update check: ' . $e->getMessage());
+        error_log('SMSI Plugin: Exception in update check: ' . $e->getMessage());
         set_transient('smsi_update_check', 'no_update', 30 * MINUTE_IN_SECONDS);
     }
 

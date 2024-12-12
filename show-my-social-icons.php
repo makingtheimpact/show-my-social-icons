@@ -356,10 +356,7 @@ function smsi_enqueue_frontend_scripts() {
     // Only enqueue if not in admin
     if (!is_admin()) {
         // Add console log to verify function is running
-        error_log('Attempting to enqueue frontend script');
-        
         $script_path = plugin_dir_url(__FILE__) . 'assets/js/frontend.js';
-        error_log('Script path: ' . $script_path);
         
         wp_enqueue_script(
             'smsi-frontend-script',

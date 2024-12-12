@@ -949,10 +949,7 @@ function smsi_preview_shortcode_callback() {
     if (isset($_POST['shortcode'])) {
         // Remove slashes added by PHP's escaping
         $shortcode = stripslashes(sanitize_textarea_field($_POST['shortcode']));
-        
-        // Log the shortcode after stripslashes to confirm it's clean
-        error_log('Received shortcode after stripslashes: ' . $shortcode);
-        
+
         // Output the processed shortcode
         echo do_shortcode($shortcode);
     }
@@ -1018,10 +1015,8 @@ function smsi_save_platform_order() {
         foreach ($order as $index => $platform) {
             update_option($platform . '_order', $index);
         }
-        error_log('smsi_save_platform_order: Order saved successfully.');
         wp_send_json_success();
     } else {
-        error_log('smsi_save_platform_order: Error saving order.');
         wp_send_json_error();
     }
 }
@@ -1041,10 +1036,8 @@ function smsi_save_platform_url() {
 
     if (!empty($platform) && !empty($url)) {
         update_option($platform . '_url', $url);
-        error_log('smsi_save_platform_url: URL saved successfully.');
         wp_send_json_success();
     } else {
-        error_log('smsi_save_platform_url: Error saving URL.');
         wp_send_json_error();
     }
 }
