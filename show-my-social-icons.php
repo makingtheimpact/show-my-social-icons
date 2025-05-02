@@ -3,11 +3,11 @@
  * Plugin Name: Show My Social Icons
  * Plugin URI: https://makingtheimpact.com
  * Description: Display customizable social media icons anywhere on your WordPress site using shortcodes, widgets, Gutenberg blocks, or in the main menu.
- * Version: 1.0.76  
+ * Version: 1.0.77  
  * Requires at least: 5.0
  * Requires PHP: 7.0
  * Tested up to: 6.6.2
- * Stable tag: 1.0.76
+ * Stable tag: 1.0.77
  * License: GPL2
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: show-my-social-icons
@@ -20,8 +20,8 @@
 
  /* To Do:
  - Make it so people can create their own custom icons and upload their own icons to the plugin.
- - Add a new shortcode, block, and widget for displaying one or more icons they select in a group instead of all the icons or make it so they can turn off the group display and just display the icons they select in a group.
  - Add Flickr, foursquare and any other platforms that are missing.
+ - Add mobile style settings to override the default so that icons that are left or right aligned on desktop are centered on mobile.
  */
 
 // Prevent direct access.
@@ -30,7 +30,7 @@ if (!defined('WPINC')) {
 }
 
 if (!defined('SMSI_VERSION')) {
-    define('SMSI_VERSION', '1.0.76');
+    define('SMSI_VERSION', '1.0.77');
 }
 
 /**

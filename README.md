@@ -118,6 +118,9 @@ If the CSS styles are not being loaded, you can try the following:
 
 ## Changelog
 
+### 1.0.77
+- Added support for the Spotify platform.
+
 ### 1.0.76
 - Added support for the select_my_social_icons shortcode, block, and widget.
 - Fixed alignment issue with the single icon inline display.

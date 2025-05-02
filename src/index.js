@@ -54,6 +54,7 @@ export default function Edit( { attributes, setAttributes } ) {
         { id: 'rokfin', name: 'Rokfin' },
         { id: 'rumble', name: 'Rumble' },
         { id: 'snapchat', name: 'Snapchat' },
+        { id: 'spotify', name: 'Spotify' },
         { id: 'substack', name: 'Substack' },
         { id: 'telegram', name: 'Telegram' },
         { id: 'tiktok', name: 'TikTok' },
